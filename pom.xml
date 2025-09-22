@@ -2,34 +2,28 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
+
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
         <version>3.5.5</version>
         <relativePath/>
     </parent>
+
     <groupId>com.fhtw</groupId>
     <artifactId>shreddit</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>shreddit</name>
-    <description>SWEN 3 DMS</description>
-    <url/>
-    <licenses>
-        <license/>
-    </licenses>
-    <developers>
-        <developer/>
-    </developers>
-    <scm>
-        <connection/>
-        <developerConnection/>
-        <tag/>
-        <url/>
-    </scm>
+
+    <!-- If you hit any Java 23 weirdness, change this to 21 (LTS) -->
     <properties>
         <java.version>23</java.version>
     </properties>
+
     <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
@@ -40,136 +34,96 @@
             <artifactId>postgresql</artifactId>
             <scope>runtime</scope>
         </dependency>
+
+        <!-- Lombok (pin a version) -->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <optional>true</optional>
+            <version>1.18.34</version>
+            <scope>provided</scope>
         </dependency>
+
+        <!-- Test -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
-        </dependency>
-        <!-- OpenAPI Jackson nullable support -->
+
+        <!-- OpenAPI bits that play well with Spring Boot 3 / Jackson -->
         <dependency>
             <groupId>org.openapitools</groupId>
             <artifactId>jackson-databind-nullable</artifactId>
             <version>0.2.7</version>
         </dependency>
-
-        <!-- Swagger Annotations -->
-        <dependency>
-            <groupId>io.swagger.core.v3</groupId>
-            <artifactId>swagger-annotations</artifactId>
-            <version>2.2.37</version>
-        </dependency>
-
         <dependency>
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
             <version>2.6.0</version>
         </dependency>
-
-
-        <!-- Jakarta Servlet API -->
-        <dependency>
-            <groupId>jakarta.servlet</groupId>
-            <artifactId>jakarta.servlet-api</artifactId>
-            <scope>provided</scope>
-        </dependency>
-
-        <!-- Jakarta Validation API -->
-        <dependency>
-            <groupId>jakarta.validation</groupId>
-            <artifactId>jakarta.validation-api</artifactId>
-        </dependency>
-
-        <!-- Jakarta Annotations -->
-        <dependency>
-            <groupId>jakarta.annotation</groupId>
-            <artifactId>jakarta.annotation-api</artifactId>
-        </dependency>
-
     </dependencies>
 
     <build>
         <plugins>
+            <!-- Ensure javac uses the right release and Lombok as AP -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
+                    <release>${java.version}</release>
                     <annotationProcessorPaths>
                         <path>
                             <groupId>org.projectlombok</groupId>
                             <artifactId>lombok</artifactId>
+                            <version>1.18.34</version>
                         </path>
                     </annotationProcessorPaths>
                 </configuration>
             </plugin>
+
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
-                <configuration>
-                    <excludes>
-                        <exclude>
-                            <groupId>org.projectlombok</groupId>
-                            <artifactId>lombok</artifactId>
-                        </exclude>
-                    </excludes>
-                </configuration>
             </plugin>
+
+            <!-- OpenAPI codegen: generate Jakarta + Spring Boot 3 code into target/... -->
             <plugin>
                 <groupId>org.openapitools</groupId>
                 <artifactId>openapi-generator-maven-plugin</artifactId>
                 <version>7.15.0</version>
                 <configuration>
-                    <configHelp>spring</configHelp>
                     <inputSpec>src/main/resources/openapi.yaml</inputSpec>
                     <generatorName>spring</generatorName>
+                    <library>spring-boot</library>
                     <apiPackage>com.fhtw.shreddit.api</apiPackage>
                     <modelPackage>com.fhtw.shreddit.model</modelPackage>
-                    <output>generated-sources/openapi</output>
-                    <!-- Force Jakarta instead of javax -->
+                    <output>${project.build.directory}/generated-sources/openapi</output>
                     <configOptions>
+                        <useSpringBoot3>true</useSpringBoot3>
                         <useJakartaEe>true</useJakartaEe>
+                        <dateLibrary>java8</dateLibrary>
+                        <interfaceOnly>false</interfaceOnly>
+                        <skipDefaultInterface>false</skipDefaultInterface>
                     </configOptions>
-                    <importMappings>
-                        javax.annotation.Generated=jakarta.annotation.Generated
-                        javax.validation.Valid=jakarta.validation.Valid
-                        javax.validation.constraints.NotNull=jakarta.validation.constraints.NotNull
-                        javax.servlet.http.HttpServletResponse=jakarta.servlet.http.HttpServletResponse
-                    </importMappings>
-                    <typeMappings>
-                        javax.annotation.Generated=jakarta.annotation.Generated
-                        javax.validation.Valid=jakarta.validation.Valid
-                        javax.validation.constraints.NotNull=jakarta.validation.constraints.NotNull
-                        javax.servlet.http.HttpServletResponse=jakarta.servlet.http.HttpServletResponse
-                    </typeMappings>
                 </configuration>
                 <executions>
                     <execution>
-                        <goals>
-                            <goal>generate</goal>
-                        </goals>
+                        <goals><goal>generate</goal></goals>
+                        <phase>generate-sources</phase>
                     </execution>
                 </executions>
             </plugin>
 
+            <!-- Tell Maven/IDE to compile the generated sources from target/... -->
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>build-helper-maven-plugin</artifactId>
                 <version>3.5.0</version>
                 <executions>
                     <execution>
-                        <id>add-source</id>
+                        <id>add-openapi-sources</id>
                         <phase>generate-sources</phase>
-                        <goals>
-                            <goal>add-source</goal>
-                        </goals>
+                        <goals><goal>add-source</goal></goals>
                         <configuration>
                             <sources>
                                 <source>${project.build.directory}/generated-sources/openapi/src/main/java</source>
@@ -177,11 +131,9 @@
                         </configuration>
                     </execution>
                     <execution>
-                        <id>add-test-source</id>
+                        <id>add-openapi-test-sources</id>
                         <phase>generate-test-sources</phase>
-                        <goals>
-                            <goal>add-test-source</goal>
-                        </goals>
+                        <goals><goal>add-test-source</goal></goals>
                         <configuration>
                             <sources>
                                 <source>${project.build.directory}/generated-sources/openapi/src/test/java</source>
@@ -192,5 +144,4 @@
             </plugin>
         </plugins>
     </build>
-
 </project>
