@@ -16,7 +16,7 @@
 
     <!-- If you hit any Java 23 weirdness, change this to 21 (LTS) -->
     <properties>
-        <java.version>23</java.version>
+        <java.version>21</java.version>
     </properties>
 
     <dependencies>
@@ -36,17 +36,17 @@
         </dependency>
 
         <!-- Lombok (pin a version) -->
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <version>1.18.34</version>
-            <scope>provided</scope>
-        </dependency>
 
         <!-- Test -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <version>2.2.224</version>
             <scope>test</scope>
         </dependency>
 
@@ -75,13 +75,6 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
                     <release>${java.version}</release>
-                    <annotationProcessorPaths>
-                        <path>
-                            <groupId>org.projectlombok</groupId>
-                            <artifactId>lombok</artifactId>
-                            <version>1.18.34</version>
-                        </path>
-                    </annotationProcessorPaths>
                 </configuration>
             </plugin>
 
@@ -99,12 +92,13 @@
                 <artifactId>openapi-generator-maven-plugin</artifactId>
                 <version>7.15.0</version>
                 <configuration>
+                    <skip>true</skip>
                     <inputSpec>src/main/resources/openapi.yaml</inputSpec>
                     <generatorName>spring</generatorName>
                     <library>spring-boot</library>
                     <apiPackage>com.fhtw.shreddit.api</apiPackage>
                     <modelPackage>com.fhtw.shreddit.model</modelPackage>
-                    <output>../target/generated-sources/openapi</output>
+                    <output>${project.build.directory}/generated-sources/openapi</output>
                     <configOptions>
                         <useSpringBoot3>true</useSpringBoot3>
                         <useJakartaEe>true</useJakartaEe>

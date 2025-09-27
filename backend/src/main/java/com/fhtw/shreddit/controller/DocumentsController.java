@@ -1,28 +1,35 @@
 package com.fhtw.shreddit.controller;
 
-import com.fhtw.shreddit.api.DocumentsApiController;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.context.request.NativeWebRequest;
 import com.fhtw.shreddit.model.Document;
+import com.fhtw.shreddit.service.DocumentService;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
-public class CustomDocumentsApiController extends DocumentsApiController {
+public class DocumentsController {
 
-    @Autowired
-    public CustomDocumentsApiController(NativeWebRequest request) {
-        super(request);
+    private final DocumentService documentService;
+
+    public DocumentsController(DocumentService documentService) {
+        this.documentService = documentService;
     }
 
-    @Override
-    public ResponseEntity<Document> createDocument(Document document) {
-        // TODO: Add your logic to save the document and return a response
-        // Example:
-        // documentRepository.save(document);
-        // return ResponseEntity.status(201).body(document);
+    @GetMapping("/documents")
+    public ResponseEntity<List<Document>> getDocuments() {
+        return ResponseEntity.ok(documentService.getAll());
+    }
 
-        // For now, just echo the document back with 201 Created
-        return ResponseEntity.status(201).body(document);
+    @PostMapping(value = "/documents", consumes = "application/json", produces = "application/json")
+    public ResponseEntity<Document> createDocument(@RequestBody Document document) {
+        Document created = documentService.create(document);
+        return ResponseEntity.status(201).body(created);
+    }
+
+    @DeleteMapping("/documents/{id}")
+    public ResponseEntity<Void> deleteDocument(@PathVariable Long id) {
+        documentService.delete(id);
+        return ResponseEntity.noContent().build();
     }
 }
