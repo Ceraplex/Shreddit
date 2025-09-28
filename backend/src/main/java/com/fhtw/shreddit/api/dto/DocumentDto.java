@@ -1,5 +1,7 @@
 package com.fhtw.shreddit.api.dto;
 
+import java.time.LocalDateTime;
+
 /**
  * Pure API DTO used for JSON serialization/deserialization.
  * Decoupled from JPA to avoid any persistence annotations affecting Jackson binding.
@@ -8,6 +10,7 @@ public class DocumentDto {
     private Long id;
     private String title;
     private String content;
+    private LocalDateTime createdAt;
 
     public DocumentDto() {}
 
@@ -33,5 +36,13 @@ public class DocumentDto {
 
     public void setContent(String content) {
         this.content = content;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
     }
 }

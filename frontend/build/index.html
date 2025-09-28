@@ -1,149 +1,305 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Paperless Frontend</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Shreddit — Dashboard</title>
   <style>
-    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji"; margin: 0; background: #0b1020; color: #e9eefc; }
-    header { background: #121a35; padding: 16px 24px; border-bottom: 1px solid #223; }
-    header h1 { margin: 0; font-size: 20px; }
-    main { padding: 24px; max-width: 900px; margin: 0 auto; }
-    .card { background: #10182f; border: 1px solid #233; border-radius: 8px; padding: 16px; margin-bottom: 16px; }
-    input, textarea, button { font: inherit; }
-    input, textarea { width: 100%; padding: 8px 10px; margin: 6px 0 12px; color: #e9eefc; background: #0b1226; border: 1px solid #2a355a; border-radius: 6px; }
-    button { background: #4f7cff; color: white; border: none; padding: 10px 14px; border-radius: 6px; cursor: pointer; }
-    button:disabled { opacity: 0.6; cursor: default; }
-    .row { display: flex; gap: 16px; align-items: center; }
-    .muted { color: #a8b3cf; }
-    .list { display: grid; gap: 12px; }
-    .doc { padding: 10px; background: #0c142b; border: 1px solid #1e2747; border-radius: 6px; }
+    :root { color-scheme: light dark; }
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif; margin: 0; }
+    header { padding: 1rem; background: #222; color: #fff; display:flex; align-items:center; justify-content:space-between; }
+    main { display: grid; grid-template-columns: 2fr 1fr; gap: 1rem; padding: 1rem; }
+    .card { background: #fff2; border: 1px solid #0002; border-radius: 8px; padding: 1rem; }
+    ul { list-style: none; padding: 0; margin: 0; }
+    li { padding: .75rem; border-bottom: 1px solid #0001; display: flex; flex-direction: column; align-items: stretch; gap: .5rem; }
+    .muted { opacity: .8; }
+    .toolbar { display: flex; gap: .5rem; margin-bottom: .75rem; }
+    input, button { padding: .5rem .75rem; }
+    .title { font-weight: 600; }
+    .row { display: flex; align-items: center; gap: .5rem; }
+    .date { font-variant-numeric: tabular-nums; }
+    .space-between { justify-content: space-between; width: 100%; }
+    .title-btn { background: none; border: none; color: inherit; cursor: pointer; padding: 0; font: inherit; text-align: left; }
+    .details { display: none; margin-top: .5rem; padding-top: .5rem; border-top: 1px solid #0002; }
+    .right { display:flex; gap:.5rem; align-items:center; }
   </style>
-  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-  <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
-  <script defer src="assets/api.js"></script>
 </head>
 <body>
-  <header>
-    <h1>Paperless Frontend</h1>
-  </header>
-  <main>
-    <div id="root"></div>
-  </main>
+<header>
+  <h1>Shreddit — Documents</h1>
+  <div class="right">
+    <span id="userInfo" class="muted" style="display:none"></span>
+    <button id="logoutBtn" style="display:none">Logout</button>
+  </div>
+</header>
+<main>
+  <section class="card" id="authCard" style="grid-column:1/3;">
+    <h2>Log In or Register</h2>
+    <form id="authForm">
+      <div class="row">
+        <input id="authUsername" placeholder="Username" required />
+      </div>
+      <div class="row">
+        <input id="authPassword" type="password" placeholder="Password" required />
+      </div>
+      <div class="row" style="gap:.5rem">
+        <button id="loginBtn">Log In</button>
+        <button id="registerBtn" type="button">Register</button>
+      </div>
+      <div id="authMsg" class="muted" style="margin-top:.5rem"></div>
+    </form>
+  </section>
 
-  <script type="text/babel">
-    /* global React, ReactDOM, apiFetch */
-    const { useEffect, useState, useSyncExternalStore } = React;
-    const { createRoot } = ReactDOM;
+  <section class="card" id="listCard" style="display:none;">
+    <div class="toolbar">
+      <input id="search" placeholder="Filter by title..." />
+      <button id="refresh">Refresh</button>
+    </div>
+    <ul id="list"></ul>
+  </section>
+  <section class="card" id="upload" style="display:none;">
+    <h2>Upload Document</h2>
+    <form id="uploadForm">
+      <div class="row">
+        <input id="title" name="title" placeholder="Title (optional)" />
+      </div>
+      <div class="row">
+        <input id="file" name="file" type="file" accept="application/pdf,.pdf" required />
+      </div>
+      <div class="row">
+        <button type="submit">Upload PDF</button>
+      </div>
+      <div class="row">
+        <small class="muted">Only PDF files are allowed.</small>
+      </div>
+    </form>
+    <div id="msg" class="muted" style="margin-top:.5rem"></div>
+  </section>
+</main>
+<script src="/assets/api.js"></script>
+<script>
+  // Auth / UI gating
+  const authCard = document.getElementById('authCard');
+  const listCard = document.getElementById('listCard');
+  const uploadCard = document.getElementById('upload');
+  const userInfo = document.getElementById('userInfo');
+  const logoutBtn = document.getElementById('logoutBtn');
 
-    // MVVM
-    class DocumentViewModel {
-      constructor() {
-        this.state = { docs: [], loading: false, error: null };
-        this.listeners = new Set();
-      }
-      subscribe = (cb) => { this.listeners.add(cb); return () => this.listeners.delete(cb); };
-      getSnapshot = () => this.state;
-      setState(patch) {
-        this.state = { ...this.state, ...patch };
-        this.listeners.forEach(l => { try { l(); } catch(_){} });
-      }
-      async load() {
-        this.setState({ loading: true, error: null });
-        try {
-          const res = await apiFetch('/api/documents');
-          const data = await res.json();
-          this.setState({ docs: Array.isArray(data) ? data : [], loading: false });
-        } catch (e) {
-          this.setState({ error: (e && e.message) || 'Failed to load', loading: false });
-        }
-      }
-      async create(dto) {
-        this.setState({ loading: true, error: null });
-        try {
-          const res = await apiFetch('/api/documents', { method: 'POST', body: JSON.stringify(dto) });
-          if (!res.ok) throw new Error('Create failed: ' + res.status);
-          await this.load();
-        } catch (e) {
-          this.setState({ error: (e && e.message) || 'Failed to create', loading: false });
-        }
-      }
-      async remove(id) {
-        this.setState({ loading: true, error: null });
-        try {
-          await apiFetch('/api/documents/' + id, { method: 'DELETE' });
-          await this.load();
-        } catch (e) {
-          this.setState({ error: (e && e.message) || 'Failed to delete', loading: false });
-        }
-      }
+  function isLoggedIn() {
+    try { return !!localStorage.getItem('jwt'); } catch (_) { return false; }
+  }
+  function getUsername() {
+    try { return localStorage.getItem('username') || ''; } catch (_) { return ''; }
+  }
+  function setAuth(token, username) {
+    try {
+      localStorage.setItem('jwt', token);
+      localStorage.setItem('username', username || '');
+    } catch (_) {}
+    applyAuthState();
+  }
+  function clearAuth() {
+    try {
+      localStorage.removeItem('jwt');
+      localStorage.removeItem('username');
+    } catch (_) {}
+    applyAuthState();
+  }
+  function applyAuthState() {
+    const logged = isLoggedIn();
+    authCard.style.display = logged ? 'none' : 'block';
+    listCard.style.display = logged ? 'block' : 'none';
+    uploadCard.style.display = logged ? 'block' : 'none';
+    userInfo.style.display = logged ? 'inline' : 'none';
+    logoutBtn.style.display = logged ? 'inline-block' : 'none';
+    if (logged) {
+      userInfo.textContent = 'Signed in as ' + getUsername();
+      load();
+    } else {
+      // clear list
+      const listEl = document.getElementById('list');
+      if (listEl) listEl.innerHTML = '';
     }
-    const vm = new DocumentViewModel();
+  }
+  logoutBtn.addEventListener('click', () => { clearAuth(); });
 
-    function useDocumentVM() {
-      const snap = useSyncExternalStore(vm.subscribe, vm.getSnapshot);
-      return { ...snap, load: () => vm.load(), create: (d) => vm.create(d), remove: (id) => vm.remove(id) };
+  // Auth handlers
+  const authForm = document.getElementById('authForm');
+  const authUsername = document.getElementById('authUsername');
+  const authPassword = document.getElementById('authPassword');
+  const loginBtn = document.getElementById('loginBtn');
+  const registerBtn = document.getElementById('registerBtn');
+  const authMsg = document.getElementById('authMsg');
+
+  loginBtn.addEventListener('click', async (e) => {
+    e.preventDefault();
+    await doAuth('/api/auth/login');
+  });
+  registerBtn.addEventListener('click', async (e) => {
+    e.preventDefault();
+    await doAuth('/api/auth/register');
+  });
+  async function doAuth(url) {
+    authMsg.textContent = '';
+    const username = authUsername.value.trim();
+    const password = authPassword.value;
+    if (!username || !password) { authMsg.textContent = 'Enter username and password.'; return; }
+    try {
+      const res = await apiFetch(url, { method: 'POST', body: JSON.stringify({ username, password }) });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        authMsg.textContent = data.error || 'Authentication failed';
+        return;
+      }
+      const data = await res.json();
+      setAuth(data.token, data.username);
+      authForm.reset();
+    } catch (e) {
+      console.error(e);
+      authMsg.textContent = 'Network error';
     }
+  }
 
-    function App() {
-      const { docs, loading, error, load, create, remove } = useDocumentVM();
-      const [title, setTitle] = useState('');
-      const [content, setContent] = useState('');
+  // Documents/dashboard (same as before)
+  const listEl = document.getElementById('list');
+  const searchEl = document.getElementById('search');
+  const refreshBtn = document.getElementById('refresh');
+  const form = document.getElementById('uploadForm');
+  const titleInput = document.getElementById('title');
+  const fileInput = document.getElementById('file');
+  const msgEl = document.getElementById('msg');
+  let docs = [];
 
-      useEffect(() => { load(); }, []);
+  async function load() {
+    if (!isLoggedIn()) return;
+    try {
+      const res = await apiFetch('/api/documents');
+      if (!res.ok) throw new Error('Failed to load documents');
+      docs = await res.json();
+      render();
+    } catch (e) {
+      console.error(e);
+      listEl.innerHTML = `<li class="muted">Error loading documents</li>`;
+    }
+  }
 
-      const onCreate = () => {
-        // DTO mapping layer (MVVM): View -> DTO
-        const dto = { title, content };
-        create(dto).then(() => { setTitle(''); setContent(''); });
+  function render() {
+    const q = (searchEl?.value || '').toLowerCase();
+    const filtered = docs.filter(d => (d.title || '').toLowerCase().includes(q));
+    listEl.innerHTML = '';
+    if (!filtered.length) {
+      listEl.innerHTML = `<li class="muted">No documents</li>`;
+      return;
+    }
+    for (const d of filtered) {
+      const li = document.createElement('li');
+      const left = document.createElement('div');
+      left.className = 'row';
+      left.innerHTML = `<button class="title-btn title" data-id="${d.id}">${escapeHtml(d.title || '(untitled)')}</button><span class="muted date">${formatDate(d.createdAt)}</span>`;
+
+      const del = document.createElement('button');
+      del.textContent = 'Delete';
+      del.onclick = async () => {
+        if (!confirm('Delete this document?')) return;
+        const res = await apiFetch(`/api/documents/${d.id}`, { method: 'DELETE' });
+        if (res.ok) {
+          docs = docs.filter(x => x.id !== d.id);
+          render();
+        } else {
+          alert('Delete failed');
+        }
       };
 
-      return (
-        <React.Fragment>
-          <div className="card">
-            <div className="row" style={{justifyContent:'space-between'}}>
-              <strong>Dashboard</strong>
-              <button onClick={load} disabled={loading}>Refresh</button>
-            </div>
-            <p className="muted">Simple React UI served by nginx and proxied to the Spring Boot backend via /api.</p>
-          </div>
+      const headerRow = document.createElement('div');
+      headerRow.className = 'row space-between';
+      headerRow.appendChild(left);
+      headerRow.appendChild(del);
 
-          <div className="card">
-            <strong>Create Document</strong>
-            <input placeholder="Title" value={title} onChange={e=>setTitle(e.target.value)} />
-            <textarea rows="3" placeholder="Content" value={content} onChange={e=>setContent(e.target.value)} />
-            <button disabled={loading || !title} onClick={onCreate}>Create</button>
-          </div>
+      const details = document.createElement('div');
+      details.className = 'details';
+      details.dataset.loaded = 'false';
 
-          <div className="card">
-            <strong>Documents</strong>
-            {loading && <p className="muted">Loading…</p>}
-            {error && <p style={{color:'#ff9a9a'}}>Error: {error}</p>}
-            <div className="list">
-              {docs.length ? docs.map(d => (
-                <div key={d.id} className="doc">
-                  <div className="row" style={{justifyContent:'space-between'}}>
-                    <div>
-                      <div><strong>{d.title || 'Untitled'}</strong></div>
-                      <div className="muted" style={{fontSize:12}}>#{d.id}</div>
-                    </div>
-                    <button onClick={() => remove(d.id)}>Delete</button>
-                  </div>
-                  {d.content && <pre style={{whiteSpace:'pre-wrap'}}>{d.content}</pre>}
-                </div>
-              )) : <p className="muted">No documents yet.</p>}
-            </div>
-          </div>
-        </React.Fragment>
-      );
+      const titleBtn = headerRow.querySelector('.title-btn');
+      titleBtn.addEventListener('click', async () => {
+        if (details.style.display === 'block') {
+          details.style.display = 'none';
+          return;
+        }
+        if (details.dataset.loaded !== 'true') {
+          try {
+            const res = await apiFetch(`/api/documents/${d.id}`);
+            if (!res.ok) {
+              details.innerHTML = `<div class="muted">Details could not be loaded.</div>`;
+            } else {
+              const doc = await res.json();
+              details.innerHTML = `
+                <div><strong>Title:</strong> ${escapeHtml(doc.title || '(untitled)')}</div>
+                <div><strong>Uploaded:</strong> ${formatDate(doc.createdAt)}</div>
+                <div><strong>ID:</strong> ${doc.id}</div>
+              `;
+              details.dataset.loaded = 'true';
+            }
+          } catch (e) {
+            console.error(e);
+            details.innerHTML = `<div class="muted">Error loading details.</div>`;
+          }
+        }
+        details.style.display = 'block';
+      });
+
+      li.appendChild(headerRow);
+      li.appendChild(details);
+      listEl.appendChild(li);
     }
+  }
 
-    const rootEl = document.getElementById('root');
-    if (rootEl) {
-      const root = createRoot(rootEl);
-      root.render(React.createElement(App));
+  function formatDate(dt) {
+    if (!dt) return '(no date)';
+    try {
+      const d = typeof dt === 'string' ? new Date(dt) : dt;
+      if (Number.isNaN(d.getTime())) return '(no date)';
+      return d.toLocaleString();
+    } catch (_) { return '(no date)'; }
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]));
+  }
+
+  searchEl?.addEventListener('input', render);
+  refreshBtn?.addEventListener('click', load);
+
+  const formEl = document.getElementById('uploadForm');
+  formEl?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    msgEl.textContent = '';
+    const file = fileInput.files[0];
+    if (!file) { msgEl.textContent = 'Please choose a PDF file.'; return; }
+    if (!/pdf$/i.test(file.type) && !/\.pdf$/i.test(file.name)) {
+      msgEl.textContent = 'Only PDF files are allowed.';
+      return;
     }
-  </script>
+    const fd = new FormData();
+    fd.append('file', file);
+    if (titleInput.value) fd.append('title', titleInput.value);
+
+    try {
+      const res = await apiFetch('/api/documents/upload', { method: 'POST', body: fd });
+      if (!res.ok) throw new Error('Upload failed');
+      const created = await res.json();
+      if (!created.createdAt) created.createdAt = new Date().toISOString();
+      docs.unshift(created);
+      render();
+      formEl.reset();
+      msgEl.textContent = 'Upload successful';
+    } catch (err) {
+      console.error(err);
+      msgEl.textContent = 'Upload failed (backend endpoint not yet available or error).';
+    }
+  });
+
+  // Init
+  applyAuthState();
+</script>
 </body>
 </html>

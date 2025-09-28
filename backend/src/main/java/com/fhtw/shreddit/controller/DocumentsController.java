@@ -25,6 +25,13 @@ public class DocumentsController {
         return ResponseEntity.ok(documentService.getAll());
     }
 
+    @GetMapping("/documents/{id}")
+    public ResponseEntity<DocumentDto> getDocument(@PathVariable Long id) {
+        return documentService.getById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
     @PostMapping(value = "/documents")
     public ResponseEntity<DocumentDto> createDocument(@RequestBody DocumentDto document) {
         log.debug("Creating document: title='{}'", document.getTitle());

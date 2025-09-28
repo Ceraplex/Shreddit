@@ -5,6 +5,9 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.MappedSuperclass;
+import jakarta.persistence.PrePersist;
+
+import java.time.LocalDateTime;
 
 /**
  * Simple DTO mirroring the OpenAPI Document schema.
@@ -23,7 +26,17 @@ public class Document {
     @Column(name = "content")
     private String content;
 
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
+
     public Document() {}
+
+    @PrePersist
+    protected void onCreate() {
+        if (createdAt == null) {
+            createdAt = LocalDateTime.now();
+        }
+    }
 
     public Long getId() {
         return id;
@@ -47,5 +60,13 @@ public class Document {
 
     public void setContent(String content) {
         this.content = content;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
     }
 }

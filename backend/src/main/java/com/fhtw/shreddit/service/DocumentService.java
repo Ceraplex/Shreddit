@@ -6,6 +6,7 @@ import com.fhtw.shreddit.repository.DocumentRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -23,6 +24,10 @@ public class DocumentService {
                 .collect(Collectors.toList());
     }
 
+    public Optional<DocumentDto> getById(Long id) {
+        return repository.findById(id).map(this::toDto);
+    }
+
     public DocumentDto create(DocumentDto doc) {
         DocumentEntity entity = toEntity(doc);
         DocumentEntity saved = repository.save(entity);
@@ -38,6 +43,7 @@ public class DocumentService {
         entity.setId(doc.getId());
         entity.setTitle(doc.getTitle());
         entity.setContent(doc.getContent());
+        entity.setCreatedAt(doc.getCreatedAt());
         return entity;
     }
 
@@ -46,6 +52,7 @@ public class DocumentService {
         doc.setId(entity.getId());
         doc.setTitle(entity.getTitle());
         doc.setContent(entity.getContent());
+        doc.setCreatedAt(entity.getCreatedAt());
         return doc;
     }
 }
