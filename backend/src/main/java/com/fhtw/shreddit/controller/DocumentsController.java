@@ -1,7 +1,9 @@
 package com.fhtw.shreddit.controller;
 
-import com.fhtw.shreddit.model.Document;
+import com.fhtw.shreddit.api.dto.DocumentDto;
 import com.fhtw.shreddit.service.DocumentService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -10,6 +12,8 @@ import java.util.List;
 @RestController
 public class DocumentsController {
 
+    private static final Logger log = LoggerFactory.getLogger(DocumentsController.class);
+
     private final DocumentService documentService;
 
     public DocumentsController(DocumentService documentService) {
@@ -17,13 +21,15 @@ public class DocumentsController {
     }
 
     @GetMapping("/documents")
-    public ResponseEntity<List<Document>> getDocuments() {
+    public ResponseEntity<List<DocumentDto>> getDocuments() {
         return ResponseEntity.ok(documentService.getAll());
     }
 
-    @PostMapping(value = "/documents", consumes = "application/json", produces = "application/json")
-    public ResponseEntity<Document> createDocument(@RequestBody Document document) {
-        Document created = documentService.create(document);
+    @PostMapping(value = "/documents")
+    public ResponseEntity<DocumentDto> createDocument(@RequestBody DocumentDto document) {
+        log.debug("Creating document: title='{}'", document.getTitle());
+        DocumentDto created = documentService.create(document);
+        log.debug("Created document with id={}", created.getId());
         return ResponseEntity.status(201).body(created);
     }
 

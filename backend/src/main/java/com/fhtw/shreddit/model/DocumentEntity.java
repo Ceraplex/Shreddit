@@ -1,20 +1,10 @@
 package com.fhtw.shreddit.model;
 
 import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
+import jakarta.persistence.Table;
 
 @Entity
+@Table(name = "document_entity", schema = "public")
 public class DocumentEntity extends Document {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Override
-    public Long getId() {
-        return super.getId();
-    }
-    @Override
-    public void setId(Long id) {
-        super.setId(id);
-    }
+    // inherits id/title/content mappings from @MappedSuperclass doc
 }

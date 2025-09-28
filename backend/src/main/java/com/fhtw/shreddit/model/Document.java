@@ -1,12 +1,26 @@
 package com.fhtw.shreddit.model;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.MappedSuperclass;
+
 /**
  * Simple DTO mirroring the OpenAPI Document schema.
- * Added to decouple the build from OpenAPI codegen so Maven can compile reliably.
+ * When used as a base class for JPA entities, mark as @MappedSuperclass so
+ * JPA maps the inherited properties (id/title/content).
  */
+@MappedSuperclass
 public class Document {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(name = "title")
     private String title;
+
+    @Column(name = "content")
     private String content;
 
     public Document() {}

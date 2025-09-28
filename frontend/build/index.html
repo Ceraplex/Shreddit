@@ -34,55 +34,70 @@
 
   <script type="text/babel">
     /* global React, ReactDOM, apiFetch */
-    // noinspection JSUnresolvedVariable,JSUnresolvedFunction
-    const { useEffect, useState } = React;
+    const { useEffect, useState, useSyncExternalStore } = React;
     const { createRoot } = ReactDOM;
 
-    function useDocuments() {
-      const [docs, setDocs] = useState([]);
-      const [loading, setLoading] = useState(false);
-      const [error, setError] = useState(null);
-
-      const load = async () => {
-        setLoading(true); setError(null);
+    // MVVM
+    class DocumentViewModel {
+      constructor() {
+        this.state = { docs: [], loading: false, error: null };
+        this.listeners = new Set();
+      }
+      subscribe = (cb) => { this.listeners.add(cb); return () => this.listeners.delete(cb); };
+      getSnapshot = () => this.state;
+      setState(patch) {
+        this.state = { ...this.state, ...patch };
+        this.listeners.forEach(l => { try { l(); } catch(_){} });
+      }
+      async load() {
+        this.setState({ loading: true, error: null });
         try {
           const res = await apiFetch('/api/documents');
-          setDocs(await res.json());
-        } catch (e) { setError((e && e.message) || 'Failed to load'); }
-        finally { setLoading(false); }
-      };
-
-      const create = async (payload) => {
-        setLoading(true); setError(null);
+          const data = await res.json();
+          this.setState({ docs: Array.isArray(data) ? data : [], loading: false });
+        } catch (e) {
+          this.setState({ error: (e && e.message) || 'Failed to load', loading: false });
+        }
+      }
+      async create(dto) {
+        this.setState({ loading: true, error: null });
         try {
-          const res = await apiFetch('/api/documents', { method: 'POST', body: JSON.stringify(payload) });
-          if (res.ok) {
-            await load();
-          } else {
-            setError('Create failed: ' + res.status);
-          }
-        } catch (e) { setError((e && e.message) || 'Failed to create'); }
-        finally { setLoading(false); }
-      };
-
-      const remove = async (id) => {
-        setLoading(true); setError(null);
+          const res = await apiFetch('/api/documents', { method: 'POST', body: JSON.stringify(dto) });
+          if (!res.ok) throw new Error('Create failed: ' + res.status);
+          await this.load();
+        } catch (e) {
+          this.setState({ error: (e && e.message) || 'Failed to create', loading: false });
+        }
+      }
+      async remove(id) {
+        this.setState({ loading: true, error: null });
         try {
           await apiFetch('/api/documents/' + id, { method: 'DELETE' });
-          await load();
-        } catch (e) { setError((e && e.message) || 'Failed to delete'); }
-        finally { setLoading(false); }
-      };
+          await this.load();
+        } catch (e) {
+          this.setState({ error: (e && e.message) || 'Failed to delete', loading: false });
+        }
+      }
+    }
+    const vm = new DocumentViewModel();
 
-      return { docs, loading, error, load, create, remove };
+    function useDocumentVM() {
+      const snap = useSyncExternalStore(vm.subscribe, vm.getSnapshot);
+      return { ...snap, load: () => vm.load(), create: (d) => vm.create(d), remove: (id) => vm.remove(id) };
     }
 
     function App() {
-      const { docs, loading, error, load, create, remove } = useDocuments();
+      const { docs, loading, error, load, create, remove } = useDocumentVM();
       const [title, setTitle] = useState('');
       const [content, setContent] = useState('');
 
       useEffect(() => { load(); }, []);
+
+      const onCreate = () => {
+        // DTO mapping layer (MVVM): View -> DTO
+        const dto = { title, content };
+        create(dto).then(() => { setTitle(''); setContent(''); });
+      };
 
       return (
         <React.Fragment>
@@ -98,7 +113,7 @@
             <strong>Create Document</strong>
             <input placeholder="Title" value={title} onChange={e=>setTitle(e.target.value)} />
             <textarea rows="3" placeholder="Content" value={content} onChange={e=>setContent(e.target.value)} />
-            <button disabled={loading || !title} onClick={() => create({ title, content })}>Create</button>
+            <button disabled={loading || !title} onClick={onCreate}>Create</button>
           </div>
 
           <div className="card">
@@ -126,9 +141,7 @@
 
     const rootEl = document.getElementById('root');
     if (rootEl) {
-      // noinspection JSUnresolvedFunction
       const root = createRoot(rootEl);
-      // noinspection JSUnresolvedFunction
       root.render(React.createElement(App));
     }
   </script>

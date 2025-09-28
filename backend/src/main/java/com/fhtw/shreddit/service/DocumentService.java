@@ -1,6 +1,6 @@
 package com.fhtw.shreddit.service;
 
-import com.fhtw.shreddit.model.Document;
+import com.fhtw.shreddit.api.dto.DocumentDto;
 import com.fhtw.shreddit.model.DocumentEntity;
 import com.fhtw.shreddit.repository.DocumentRepository;
 import org.springframework.stereotype.Service;
@@ -17,23 +17,23 @@ public class DocumentService {
         this.repository = repository;
     }
 
-    public List<Document> getAll() {
+    public List<DocumentDto> getAll() {
         return repository.findAll().stream()
-                .map(this::toApiModel)
+                .map(this::toDto)
                 .collect(Collectors.toList());
     }
 
-    public Document create(Document doc) {
+    public DocumentDto create(DocumentDto doc) {
         DocumentEntity entity = toEntity(doc);
         DocumentEntity saved = repository.save(entity);
-        return toApiModel(saved);
+        return toDto(saved);
     }
 
     public void delete(Long id) {
         repository.deleteById(id);
     }
 
-    private DocumentEntity toEntity(Document doc) {
+    private DocumentEntity toEntity(DocumentDto doc) {
         DocumentEntity entity = new DocumentEntity();
         entity.setId(doc.getId());
         entity.setTitle(doc.getTitle());
@@ -41,8 +41,8 @@ public class DocumentService {
         return entity;
     }
 
-    private Document toApiModel(DocumentEntity entity) {
-        Document doc = new Document();
+    private DocumentDto toDto(DocumentEntity entity) {
+        DocumentDto doc = new DocumentDto();
         doc.setId(entity.getId());
         doc.setTitle(entity.getTitle());
         doc.setContent(entity.getContent());
