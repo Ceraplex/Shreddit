@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Paperless Frontend</title>
+  <style>
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji"; margin: 0; background: #0b1020; color: #e9eefc; }
+    header { background: #121a35; padding: 16px 24px; border-bottom: 1px solid #223; }
+    header h1 { margin: 0; font-size: 20px; }
+    main { padding: 24px; max-width: 900px; margin: 0 auto; }
+    .card { background: #10182f; border: 1px solid #233; border-radius: 8px; padding: 16px; margin-bottom: 16px; }
+    input, textarea, button { font: inherit; }
+    input, textarea { width: 100%; padding: 8px 10px; margin: 6px 0 12px; color: #e9eefc; background: #0b1226; border: 1px solid #2a355a; border-radius: 6px; }
+    button { background: #4f7cff; color: white; border: none; padding: 10px 14px; border-radius: 6px; cursor: pointer; }
+    button:disabled { opacity: 0.6; cursor: default; }
+    .row { display: flex; gap: 16px; align-items: center; }
+    .muted { color: #a8b3cf; }
+    .list { display: grid; gap: 12px; }
+    .doc { padding: 10px; background: #0c142b; border: 1px solid #1e2747; border-radius: 6px; }
+  </style>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+  <script defer src="assets/api.js"></script>
+</head>
+<body>
+  <header>
+    <h1>Paperless Frontend</h1>
+  </header>
+  <main>
+    <div id="root"></div>
+  </main>
+
+  <script type="text/babel">
+    /* global React, ReactDOM, apiFetch */
+    // noinspection JSUnresolvedVariable,JSUnresolvedFunction
+    const { useEffect, useState } = React;
+    const { createRoot } = ReactDOM;
+
+    function useDocuments() {
+      const [docs, setDocs] = useState([]);
+      const [loading, setLoading] = useState(false);
+      const [error, setError] = useState(null);
+
+      const load = async () => {
+        setLoading(true); setError(null);
+        try {
+          const res = await apiFetch('/api/documents');
+          setDocs(await res.json());
+        } catch (e) { setError((e && e.message) || 'Failed to load'); }
+        finally { setLoading(false); }
+      };
+
+      const create = async (payload) => {
+        setLoading(true); setError(null);
+        try {
+          const res = await apiFetch('/api/documents', { method: 'POST', body: JSON.stringify(payload) });
+          if (res.ok) {
+            await load();
+          } else {
+            setError('Create failed: ' + res.status);
+          }
+        } catch (e) { setError((e && e.message) || 'Failed to create'); }
+        finally { setLoading(false); }
+      };
+
+      const remove = async (id) => {
+        setLoading(true); setError(null);
+        try {
+          await apiFetch('/api/documents/' + id, { method: 'DELETE' });
+          await load();
+        } catch (e) { setError((e && e.message) || 'Failed to delete'); }
+        finally { setLoading(false); }
+      };
+
+      return { docs, loading, error, load, create, remove };
+    }
+
+    function App() {
+      const { docs, loading, error, load, create, remove } = useDocuments();
+      const [title, setTitle] = useState('');
+      const [content, setContent] = useState('');
+
+      useEffect(() => { load(); }, []);
+
+      return (
+        <React.Fragment>
+          <div className="card">
+            <div className="row" style={{justifyContent:'space-between'}}>
+              <strong>Dashboard</strong>
+              <button onClick={load} disabled={loading}>Refresh</button>
+            </div>
+            <p className="muted">Simple React UI served by nginx and proxied to the Spring Boot backend via /api.</p>
+          </div>
+
+          <div className="card">
+            <strong>Create Document</strong>
+            <input placeholder="Title" value={title} onChange={e=>setTitle(e.target.value)} />
+            <textarea rows="3" placeholder="Content" value={content} onChange={e=>setContent(e.target.value)} />
+            <button disabled={loading || !title} onClick={() => create({ title, content })}>Create</button>
+          </div>
+
+          <div className="card">
+            <strong>Documents</strong>
+            {loading && <p className="muted">Loading…</p>}
+            {error && <p style={{color:'#ff9a9a'}}>Error: {error}</p>}
+            <div className="list">
+              {docs.length ? docs.map(d => (
+                <div key={d.id} className="doc">
+                  <div className="row" style={{justifyContent:'space-between'}}>
+                    <div>
+                      <div><strong>{d.title || 'Untitled'}</strong></div>
+                      <div className="muted" style={{fontSize:12}}>#{d.id}</div>
+                    </div>
+                    <button onClick={() => remove(d.id)}>Delete</button>
+                  </div>
+                  {d.content && <pre style={{whiteSpace:'pre-wrap'}}>{d.content}</pre>}
+                </div>
+              )) : <p className="muted">No documents yet.</p>}
+            </div>
+          </div>
+        </React.Fragment>
+      );
+    }
+
+    const rootEl = document.getElementById('root');
+    if (rootEl) {
+      // noinspection JSUnresolvedFunction
+      const root = createRoot(rootEl);
+      // noinspection JSUnresolvedFunction
+      root.render(React.createElement(App));
+    }
+  </script>
+</body>
+</html>
