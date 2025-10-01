@@ -7,10 +7,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.time.LocalDateTime;
 
-/**
- * Pure API DTO used for JSON serialization/deserialization.
- * Decoupled from JPA to avoid any persistence annotations affecting Jackson binding.
- */
+
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class DocumentDto {

@@ -9,11 +9,7 @@ import jakarta.persistence.PrePersist;
 
 import java.time.LocalDateTime;
 
-/**
- * Simple DTO mirroring the OpenAPI Document schema.
- * When used as a base class for JPA entities, mark as @MappedSuperclass so
- * JPA maps the inherited properties (id/title/content).
- */
+
 @MappedSuperclass
 public class Document {
     @Id
