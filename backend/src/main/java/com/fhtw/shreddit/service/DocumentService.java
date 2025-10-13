@@ -1,12 +1,8 @@
 package com.fhtw.shreddit.service;
 
 import com.fhtw.shreddit.api.dto.DocumentDto;
-import com.fhtw.shreddit.api.dto.OcrRequestDto;
-import com.fhtw.shreddit.exception.DocumentCreationException;
 import com.fhtw.shreddit.model.DocumentEntity;
 import com.fhtw.shreddit.repository.DocumentRepository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -15,14 +11,11 @@ import java.util.stream.Collectors;
 
 @Service
 public class DocumentService {
-    private static final Logger log = LoggerFactory.getLogger(DocumentService.class);
 
     private final DocumentRepository repository;
-    private final RabbitMQService rabbitMQService;
 
-    public DocumentService(DocumentRepository repository, RabbitMQService rabbitMQService) {
+    public DocumentService(DocumentRepository repository) {
         this.repository = repository;
-        this.rabbitMQService = rabbitMQService;
     }
 
     public List<DocumentDto> getAll() {
@@ -36,21 +29,9 @@ public class DocumentService {
     }
 
     public DocumentDto create(DocumentDto doc) {
-        try {
-            log.info("Creating document: {}", doc.getTitle());
-            DocumentEntity entity = toEntity(doc);
-            DocumentEntity saved = repository.save(entity);
-            DocumentDto createdDoc = toDto(saved);
-
-            // Send OCR request
-            OcrRequestDto ocrRequest = new OcrRequestDto(saved.getId(), saved.getTitle());
-            rabbitMQService.sendOcrRequest(ocrRequest);
-
-            return createdDoc;
-        } catch (Exception e) {
-            log.error("Error creating document: {}", e.getMessage(), e);
-            throw new DocumentCreationException("Failed to create document", e);
-        }
+        DocumentEntity entity = toEntity(doc);
+        DocumentEntity saved = repository.save(entity);
+        return toDto(saved);
     }
 
     public void delete(Long id) {
