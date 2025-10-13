@@ -1,305 +1,488 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Shreddit — Dashboard</title>
-  <style>
-    :root { color-scheme: light dark; }
-    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif; margin: 0; }
-    header { padding: 1rem; background: #222; color: #fff; display:flex; align-items:center; justify-content:space-between; }
-    main { display: grid; grid-template-columns: 2fr 1fr; gap: 1rem; padding: 1rem; }
-    .card { background: #fff2; border: 1px solid #0002; border-radius: 8px; padding: 1rem; }
-    ul { list-style: none; padding: 0; margin: 0; }
-    li { padding: .75rem; border-bottom: 1px solid #0001; display: flex; flex-direction: column; align-items: stretch; gap: .5rem; }
-    .muted { opacity: .8; }
-    .toolbar { display: flex; gap: .5rem; margin-bottom: .75rem; }
-    input, button { padding: .5rem .75rem; }
-    .title { font-weight: 600; }
-    .row { display: flex; align-items: center; gap: .5rem; }
-    .date { font-variant-numeric: tabular-nums; }
-    .space-between { justify-content: space-between; width: 100%; }
-    .title-btn { background: none; border: none; color: inherit; cursor: pointer; padding: 0; font: inherit; text-align: left; }
-    .details { display: none; margin-top: .5rem; padding-top: .5rem; border-top: 1px solid #0002; }
-    .right { display:flex; gap:.5rem; align-items:center; }
-  </style>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>Shreddit — Dashboard</title>
+    <style>
+        :root {
+            color-scheme: light dark;
+            --primary-bg: #f5f5f5;
+            --secondary-bg: #222;
+            --card-bg: #ffffff;
+            --card-border: #ddd;
+            --text-color: #333;
+            --muted-text: #6c757d;
+            --button-bg: #007bff;
+            --button-hover-bg: #0056b3;
+            --button-text: #fff;
+            --input-border: #ced4da;
+            --input-focus: #80bdff;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif;
+            margin: 0;
+            background-color: var(--primary-bg);
+            color: var(--text-color);
+        }
+
+        header {
+            padding: 1rem;
+            background: var(--secondary-bg);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            margin: 0;
+        }
+
+        main {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 1rem;
+            padding: 2rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s;
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        li {
+            padding: 1rem;
+            border-bottom: 1px solid var(--card-border);
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            gap: 0.75rem;
+        }
+
+        .muted {
+            opacity: 0.8;
+            color: var(--muted-text);
+        }
+
+        .toolbar {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        input, button {
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--input-border);
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--input-focus);
+            box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+        }
+
+        button {
+            background: var(--button-bg);
+            color: var(--button-text);
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        button:hover {
+            background: var(--button-hover-bg);
+        }
+
+        .title {
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .row {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .date {
+            font-variant-numeric: tabular-nums;
+            font-size: 0.9rem;
+            color: var(--muted-text);
+        }
+
+        .space-between {
+            justify-content: space-between;
+            width: 100%;
+        }
+
+        .title-btn {
+            background: none;
+            border: none;
+            color: var(--button-bg);
+            cursor: pointer;
+            text-align: left;
+            font-size: 1rem;
+            text-decoration: underline;
+        }
+
+        .details {
+            display: none;
+            margin-top: 0.75rem;
+            padding-top: 0.75rem;
+            border-top: 1px dashed var(--card-border);
+        }
+
+        .right {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+        }
+
+        #logoutBtn {
+            background: var(--button-bg);
+            border: none;
+            color: var(--button-text);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+
+        #logoutBtn:hover {
+            background: var(--button-hover-bg);
+        }
+
+        small {
+            font-size: 0.8rem;
+        }
+    </style>
 </head>
 <body>
 <header>
-  <h1>Shreddit — Documents</h1>
-  <div class="right">
-    <span id="userInfo" class="muted" style="display:none"></span>
-    <button id="logoutBtn" style="display:none">Logout</button>
-  </div>
+    <h1>Shreddit — Documents</h1>
+    <div class="right">
+        <span id="userInfo" class="muted" style="display:none"></span>
+        <button id="logoutBtn" style="display:none">Logout</button>
+    </div>
 </header>
 <main>
-  <section class="card" id="authCard" style="grid-column:1/3;">
-    <h2>Log In or Register</h2>
-    <form id="authForm">
-      <div class="row">
-        <input id="authUsername" placeholder="Username" required />
-      </div>
-      <div class="row">
-        <input id="authPassword" type="password" placeholder="Password" required />
-      </div>
-      <div class="row" style="gap:.5rem">
-        <button id="loginBtn">Log In</button>
-        <button id="registerBtn" type="button">Register</button>
-      </div>
-      <div id="authMsg" class="muted" style="margin-top:.5rem"></div>
-    </form>
-  </section>
+    <section class="card" id="authCard" style="grid-column:1/3;">
+        <h2>Log In or Register</h2>
+        <form id="authForm">
+            <div class="row">
+                <input id="authUsername" placeholder="Username" required/>
+            </div>
+            <div class="row">
+                <input id="authPassword" type="password" placeholder="Password" required/>
+            </div>
+            <div class="row" style="gap:.5rem">
+                <button id="loginBtn">Log In</button>
+                <button id="registerBtn" type="button">Register</button>
+            </div>
+            <div id="authMsg" class="muted" style="margin-top:1rem"></div>
+        </form>
+    </section>
 
-  <section class="card" id="listCard" style="display:none;">
-    <div class="toolbar">
-      <input id="search" placeholder="Filter by title..." />
-      <button id="refresh">Refresh</button>
-    </div>
-    <ul id="list"></ul>
-  </section>
-  <section class="card" id="upload" style="display:none;">
-    <h2>Upload Document</h2>
-    <form id="uploadForm">
-      <div class="row">
-        <input id="title" name="title" placeholder="Title (optional)" />
-      </div>
-      <div class="row">
-        <input id="file" name="file" type="file" accept="application/pdf,.pdf" required />
-      </div>
-      <div class="row">
-        <button type="submit">Upload PDF</button>
-      </div>
-      <div class="row">
-        <small class="muted">Only PDF files are allowed.</small>
-      </div>
-    </form>
-    <div id="msg" class="muted" style="margin-top:.5rem"></div>
-  </section>
+    <section class="card" id="listCard" style="display:none;">
+        <div class="toolbar">
+            <input id="search" placeholder="Filter by title..."/>
+            <button id="refresh">Refresh</button>
+        </div>
+        <ul id="list"></ul>
+    </section>
+    <section class="card" id="upload" style="display:none;">
+        <h2>Upload Document</h2>
+        <form id="uploadForm">
+            <div class="row">
+                <input id="title" name="title" placeholder="Title (optional)"/>
+            </div>
+            <div class="row">
+                <input id="file" name="file" type="file" accept="application/pdf,.pdf" required/>
+            </div>
+            <div class="row">
+                <button type="submit">Upload PDF</button>
+            </div>
+            <div class="row">
+                <small class="muted">Only PDF files are allowed.</small>
+            </div>
+        </form>
+        <div id="msg" class="muted" style="margin-top:1rem"></div>
+    </section>
 </main>
 <script src="/assets/api.js"></script>
 <script>
-  // Auth / UI gating
-  const authCard = document.getElementById('authCard');
-  const listCard = document.getElementById('listCard');
-  const uploadCard = document.getElementById('upload');
-  const userInfo = document.getElementById('userInfo');
-  const logoutBtn = document.getElementById('logoutBtn');
+    // Auth / UI gating
+    const authCard = document.getElementById('authCard');
+    const listCard = document.getElementById('listCard');
+    const uploadCard = document.getElementById('upload');
+    const userInfo = document.getElementById('userInfo');
+    const logoutBtn = document.getElementById('logoutBtn');
 
-  function isLoggedIn() {
-    try { return !!localStorage.getItem('jwt'); } catch (_) { return false; }
-  }
-  function getUsername() {
-    try { return localStorage.getItem('username') || ''; } catch (_) { return ''; }
-  }
-  function setAuth(token, username) {
-    try {
-      localStorage.setItem('jwt', token);
-      localStorage.setItem('username', username || '');
-    } catch (_) {}
-    applyAuthState();
-  }
-  function clearAuth() {
-    try {
-      localStorage.removeItem('jwt');
-      localStorage.removeItem('username');
-    } catch (_) {}
-    applyAuthState();
-  }
-  function applyAuthState() {
-    const logged = isLoggedIn();
-    authCard.style.display = logged ? 'none' : 'block';
-    listCard.style.display = logged ? 'block' : 'none';
-    uploadCard.style.display = logged ? 'block' : 'none';
-    userInfo.style.display = logged ? 'inline' : 'none';
-    logoutBtn.style.display = logged ? 'inline-block' : 'none';
-    if (logged) {
-      userInfo.textContent = 'Signed in as ' + getUsername();
-      load();
-    } else {
-      // clear list
-      const listEl = document.getElementById('list');
-      if (listEl) listEl.innerHTML = '';
+    function isLoggedIn() {
+        try {
+            return !!localStorage.getItem('jwt');
+        } catch (_) {
+            return false;
+        }
     }
-  }
-  logoutBtn.addEventListener('click', () => { clearAuth(); });
 
-  // Auth handlers
-  const authForm = document.getElementById('authForm');
-  const authUsername = document.getElementById('authUsername');
-  const authPassword = document.getElementById('authPassword');
-  const loginBtn = document.getElementById('loginBtn');
-  const registerBtn = document.getElementById('registerBtn');
-  const authMsg = document.getElementById('authMsg');
-
-  loginBtn.addEventListener('click', async (e) => {
-    e.preventDefault();
-    await doAuth('/api/auth/login');
-  });
-  registerBtn.addEventListener('click', async (e) => {
-    e.preventDefault();
-    await doAuth('/api/auth/register');
-  });
-  async function doAuth(url) {
-    authMsg.textContent = '';
-    const username = authUsername.value.trim();
-    const password = authPassword.value;
-    if (!username || !password) { authMsg.textContent = 'Enter username and password.'; return; }
-    try {
-      const res = await apiFetch(url, { method: 'POST', body: JSON.stringify({ username, password }) });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        authMsg.textContent = data.error || 'Authentication failed';
-        return;
-      }
-      const data = await res.json();
-      setAuth(data.token, data.username);
-      authForm.reset();
-    } catch (e) {
-      console.error(e);
-      authMsg.textContent = 'Network error';
+    function getUsername() {
+        try {
+            return localStorage.getItem('username') || '';
+        } catch (_) {
+            return '';
+        }
     }
-  }
 
-  // Documents/dashboard (same as before)
-  const listEl = document.getElementById('list');
-  const searchEl = document.getElementById('search');
-  const refreshBtn = document.getElementById('refresh');
-  const form = document.getElementById('uploadForm');
-  const titleInput = document.getElementById('title');
-  const fileInput = document.getElementById('file');
-  const msgEl = document.getElementById('msg');
-  let docs = [];
-
-  async function load() {
-    if (!isLoggedIn()) return;
-    try {
-      const res = await apiFetch('/api/documents');
-      if (!res.ok) throw new Error('Failed to load documents');
-      docs = await res.json();
-      render();
-    } catch (e) {
-      console.error(e);
-      listEl.innerHTML = `<li class="muted">Error loading documents</li>`;
+    function setAuth(token, username) {
+        try {
+            localStorage.setItem('jwt', token);
+            localStorage.setItem('username', username || '');
+        } catch (_) {
+        }
+        applyAuthState();
     }
-  }
 
-  function render() {
-    const q = (searchEl?.value || '').toLowerCase();
-    const filtered = docs.filter(d => (d.title || '').toLowerCase().includes(q));
-    listEl.innerHTML = '';
-    if (!filtered.length) {
-      listEl.innerHTML = `<li class="muted">No documents</li>`;
-      return;
+    function clearAuth() {
+        try {
+            localStorage.removeItem('jwt');
+            localStorage.removeItem('username');
+        } catch (_) {
+        }
+        applyAuthState();
     }
-    for (const d of filtered) {
-      const li = document.createElement('li');
-      const left = document.createElement('div');
-      left.className = 'row';
-      left.innerHTML = `<button class="title-btn title" data-id="${d.id}">${escapeHtml(d.title || '(untitled)')}</button><span class="muted date">${formatDate(d.createdAt)}</span>`;
 
-      const del = document.createElement('button');
-      del.textContent = 'Delete';
-      del.onclick = async () => {
-        if (!confirm('Delete this document?')) return;
-        const res = await apiFetch(`/api/documents/${d.id}`, { method: 'DELETE' });
-        if (res.ok) {
-          docs = docs.filter(x => x.id !== d.id);
-          render();
+    function applyAuthState() {
+        const logged = isLoggedIn();
+        authCard.style.display = logged ? 'none' : 'block';
+        listCard.style.display = logged ? 'block' : 'none';
+        uploadCard.style.display = logged ? 'block' : 'none';
+        userInfo.style.display = logged ? 'inline' : 'none';
+        logoutBtn.style.display = logged ? 'inline-block' : 'none';
+        if (logged) {
+            userInfo.textContent = 'Signed in as ' + getUsername();
+            load();
         } else {
-          alert('Delete failed');
+            // clear list
+            const listEl = document.getElementById('list');
+            if (listEl) listEl.innerHTML = '';
         }
-      };
+    }
 
-      const headerRow = document.createElement('div');
-      headerRow.className = 'row space-between';
-      headerRow.appendChild(left);
-      headerRow.appendChild(del);
+    logoutBtn.addEventListener('click', () => {
+        clearAuth();
+    });
 
-      const details = document.createElement('div');
-      details.className = 'details';
-      details.dataset.loaded = 'false';
+    // Auth handlers
+    const authForm = document.getElementById('authForm');
+    const authUsername = document.getElementById('authUsername');
+    const authPassword = document.getElementById('authPassword');
+    const loginBtn = document.getElementById('loginBtn');
+    const registerBtn = document.getElementById('registerBtn');
+    const authMsg = document.getElementById('authMsg');
 
-      const titleBtn = headerRow.querySelector('.title-btn');
-      titleBtn.addEventListener('click', async () => {
-        if (details.style.display === 'block') {
-          details.style.display = 'none';
-          return;
+    loginBtn.addEventListener('click', async (e) => {
+        e.preventDefault();
+        await doAuth('/api/auth/login');
+    });
+    registerBtn.addEventListener('click', async (e) => {
+        e.preventDefault();
+        await doAuth('/api/auth/register');
+    });
+
+    async function doAuth(url) {
+        authMsg.textContent = '';
+        const username = authUsername.value.trim();
+        const password = authPassword.value;
+        if (!username || !password) {
+            authMsg.textContent = 'Enter username and password.';
+            return;
         }
-        if (details.dataset.loaded !== 'true') {
-          try {
-            const res = await apiFetch(`/api/documents/${d.id}`);
+        try {
+            const res = await apiFetch(url, {method: 'POST', body: JSON.stringify({username, password})});
             if (!res.ok) {
-              details.innerHTML = `<div class="muted">Details could not be loaded.</div>`;
-            } else {
-              const doc = await res.json();
-              details.innerHTML = `
+                const data = await res.json().catch(() => ({}));
+                authMsg.textContent = data.error || 'Authentication failed';
+                return;
+            }
+            const data = await res.json();
+            setAuth(data.token, data.username);
+            authForm.reset();
+        } catch (e) {
+            console.error(e);
+            authMsg.textContent = 'Network error';
+        }
+    }
+
+    // Documents/dashboard (same as before)
+    const listEl = document.getElementById('list');
+    const searchEl = document.getElementById('search');
+    const refreshBtn = document.getElementById('refresh');
+    const form = document.getElementById('uploadForm');
+    const titleInput = document.getElementById('title');
+    const fileInput = document.getElementById('file');
+    const msgEl = document.getElementById('msg');
+    let docs = [];
+
+    async function load() {
+        if (!isLoggedIn()) return;
+        try {
+            const res = await apiFetch('/api/documents');
+            if (!res.ok) throw new Error('Failed to load documents');
+            docs = await res.json();
+            render();
+        } catch (e) {
+            console.error(e);
+            listEl.innerHTML = `<li class="muted">Error loading documents</li>`;
+        }
+    }
+
+    function render() {
+        const q = (searchEl?.value || '').toLowerCase();
+        const filtered = docs.filter(d => (d.title || '').toLowerCase().includes(q));
+        listEl.innerHTML = '';
+        if (!filtered.length) {
+            listEl.innerHTML = `<li class="muted">No documents</li>`;
+            return;
+        }
+        for (const d of filtered) {
+            const li = document.createElement('li');
+            const left = document.createElement('div');
+            left.className = 'row';
+            left.innerHTML = `<button class="title-btn title" data-id="${d.id}">${escapeHtml(d.title || '(untitled)')}</button><span class="muted date">${formatDate(d.createdAt)}</span>`;
+
+            const del = document.createElement('button');
+            del.textContent = 'Delete';
+            del.onclick = async () => {
+                if (!confirm('Delete this document?')) return;
+                const res = await apiFetch(`/api/documents/${d.id}`, {method: 'DELETE'});
+                if (res.ok) {
+                    docs = docs.filter(x => x.id !== d.id);
+                    render();
+                } else {
+                    alert('Delete failed');
+                }
+            };
+
+            const headerRow = document.createElement('div');
+            headerRow.className = 'row space-between';
+            headerRow.appendChild(left);
+            headerRow.appendChild(del);
+
+            const details = document.createElement('div');
+            details.className = 'details';
+            details.dataset.loaded = 'false';
+
+            const titleBtn = headerRow.querySelector('.title-btn');
+            titleBtn.addEventListener('click', async () => {
+                if (details.style.display === 'block') {
+                    details.style.display = 'none';
+                    return;
+                }
+                if (details.dataset.loaded !== 'true') {
+                    try {
+                        const res = await apiFetch(`/api/documents/${d.id}`);
+                        if (!res.ok) {
+                            details.innerHTML = `<div class="muted">Details could not be loaded.</div>`;
+                        } else {
+                            const doc = await res.json();
+                            details.innerHTML = `
                 <div><strong>Title:</strong> ${escapeHtml(doc.title || '(untitled)')}</div>
                 <div><strong>Uploaded:</strong> ${formatDate(doc.createdAt)}</div>
                 <div><strong>ID:</strong> ${doc.id}</div>
               `;
-              details.dataset.loaded = 'true';
-            }
-          } catch (e) {
-            console.error(e);
-            details.innerHTML = `<div class="muted">Error loading details.</div>`;
-          }
+                            details.dataset.loaded = 'true';
+                        }
+                    } catch (e) {
+                        console.error(e);
+                        details.innerHTML = `<div class="muted">Error loading details.</div>`;
+                    }
+                }
+                details.style.display = 'block';
+            });
+
+            li.appendChild(headerRow);
+            li.appendChild(details);
+            listEl.appendChild(li);
         }
-        details.style.display = 'block';
-      });
-
-      li.appendChild(headerRow);
-      li.appendChild(details);
-      listEl.appendChild(li);
     }
-  }
 
-  function formatDate(dt) {
-    if (!dt) return '(no date)';
-    try {
-      const d = typeof dt === 'string' ? new Date(dt) : dt;
-      if (Number.isNaN(d.getTime())) return '(no date)';
-      return d.toLocaleString();
-    } catch (_) { return '(no date)'; }
-  }
-
-  function escapeHtml(s) {
-    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]));
-  }
-
-  searchEl?.addEventListener('input', render);
-  refreshBtn?.addEventListener('click', load);
-
-  const formEl = document.getElementById('uploadForm');
-  formEl?.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    msgEl.textContent = '';
-    const file = fileInput.files[0];
-    if (!file) { msgEl.textContent = 'Please choose a PDF file.'; return; }
-    if (!/pdf$/i.test(file.type) && !/\.pdf$/i.test(file.name)) {
-      msgEl.textContent = 'Only PDF files are allowed.';
-      return;
+    function formatDate(dt) {
+        if (!dt) return '(no date)';
+        try {
+            const d = typeof dt === 'string' ? new Date(dt) : dt;
+            if (Number.isNaN(d.getTime())) return '(no date)';
+            return d.toLocaleString();
+        } catch (_) {
+            return '(no date)';
+        }
     }
-    const fd = new FormData();
-    fd.append('file', file);
-    if (titleInput.value) fd.append('title', titleInput.value);
 
-    try {
-      const res = await apiFetch('/api/documents/upload', { method: 'POST', body: fd });
-      if (!res.ok) throw new Error('Upload failed');
-      const created = await res.json();
-      if (!created.createdAt) created.createdAt = new Date().toISOString();
-      docs.unshift(created);
-      render();
-      formEl.reset();
-      msgEl.textContent = 'Upload successful';
-    } catch (err) {
-      console.error(err);
-      msgEl.textContent = 'Upload failed (backend endpoint not yet available or error).';
+    function escapeHtml(s) {
+        return String(s).replace(/[&<>"']/g, c => ({
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            '\'': '&#39;'
+        }[c]));
     }
-  });
 
-  // Init
-  applyAuthState();
+    searchEl?.addEventListener('input', render);
+    refreshBtn?.addEventListener('click', load);
+
+    const formEl = document.getElementById('uploadForm');
+    formEl?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        msgEl.textContent = '';
+        const file = fileInput.files[0];
+        if (!file) {
+            msgEl.textContent = 'Please choose a PDF file.';
+            return;
+        }
+        if (!/pdf$/i.test(file.type) && !/\.pdf$/i.test(file.name)) {
+            msgEl.textContent = 'Only PDF files are allowed.';
+            return;
+        }
+        const fd = new FormData();
+        fd.append('file', file);
+        if (titleInput.value) fd.append('title', titleInput.value);
+
+        try {
+            const res = await apiFetch('/api/documents/upload', {method: 'POST', body: fd});
+            if (!res.ok) throw new Error('Upload failed');
+            const created = await res.json();
+            if (!created.createdAt) created.createdAt = new Date().toISOString();
+            docs.unshift(created);
+            render();
+            formEl.reset();
+            msgEl.textContent = 'Upload successful';
+        } catch (err) {
+            console.error(err);
+            msgEl.textContent = 'Upload failed (backend endpoint not yet available or error).';
+        }
+    });
+
+    // Init
+    applyAuthState();
 </script>
 </body>
 </html>
