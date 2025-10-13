@@ -5,12 +5,12 @@ A simple document management app (Spring Boot + Postgres + NGINX static UI).
 Quick start (Docker)
 - Prerequisite: Install Docker Desktop (includes Docker Compose).
 - From the repository root, start everything:
-  - PowerShell/CMD: docker compose -f backend/docker-compose.yml up -d --build
+  - PowerShell/CMD: docker compose -f docker-compose.yml up -d --build
 - Open the app:
   - UI: http://localhost/
   - API: http://localhost:8080/api
 - Stop and remove containers (and volumes):
-  - PowerShell/CMD: docker compose -f backend/docker-compose.yml down -v
+  - PowerShell/CMD: docker compose -f docker-compose.yml down -v
 
 What you get
 - Backend (Spring Boot) on port 8080
