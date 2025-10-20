@@ -1,16 +1,16 @@
 package com.fhtw.shreddit;
 
-import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
+import org.junit.platform.suite.api.SelectPackages;
+import org.junit.platform.suite.api.Suite;
 
-@SpringBootTest
-@ActiveProfiles("test")
+@Suite
+@SelectPackages({
+	"com.fhtw.shreddit.controller",
+	"com.fhtw.shreddit.service",
+	"com.fhtw.shreddit.security",
+	"com.fhtw.shreddit.exception",
+	"com.fhtw.shreddit.integration"
+})
 class ShredditApplicationTests {
-
-	@Test
-	void contextLoads() {
-		// This test verifies that the Spring context loads correctly
-	}
-
+	// This test suite executes all tests in the specified packages
 }
