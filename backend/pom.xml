@@ -57,6 +57,11 @@
             <version>2.2.224</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.junit.platform</groupId>
+            <artifactId>junit-platform-suite</artifactId>
+            <scope>test</scope>
+        </dependency>
 
         <!-- OpenAPI bits that play well with Spring Boot 3 / Jackson -->
         <dependency>

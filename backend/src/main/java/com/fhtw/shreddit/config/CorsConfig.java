@@ -14,7 +14,6 @@ public class CorsConfig implements WebMvcConfigurer {
                         "http://localhost",
                         "http://localhost:80",
                         "http://localhost:3000", // React
-                        // 127.0.0.1 variants
                         "http://127.0.0.1",
                         "http://127.0.0.1:3000"
                 )
