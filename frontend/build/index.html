@@ -1,177 +1,168 @@
 <!doctype html>
 <html lang="en">
 <head>
-    <meta charset="utf-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Shreddit — Dashboard</title>
     <style>
-        :root {
-            color-scheme: light dark;
-            --primary-bg: #f5f5f5;
-            --secondary-bg: #222;
-            --card-bg: #ffffff;
-            --card-border: #ddd;
-            --text-color: #333;
-            --muted-text: #6c757d;
-            --button-bg: #007bff;
-            --button-hover-bg: #0056b3;
-            --button-text: #fff;
-            --input-border: #ced4da;
-            --input-focus: #80bdff;
+        :root { color-scheme: light dark; }
+        body { font-family: system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif; margin: 0; }
+        header { padding: 1rem; background: #222; color: #fff; display:flex; align-items:center; justify-content:space-between; }
+        main { display: grid; grid-template-columns: 2fr 1fr; gap: 1rem; padding: 1rem; }
+        .card { background: #ffffff; border: 1px solid #0002; border-radius: 8px; padding: 1rem; }
+        ul { list-style: none; padding: 0; margin: 0; }
+        li { padding: .75rem; border-bottom: 1px solid #0001; display: flex; flex-direction: column; align-items: stretch; gap: .5rem; }
+        .muted { opacity: .8; }
+        .toolbar { display: flex; gap: .5rem; margin-bottom: .75rem; }
+        input, button { padding: .5rem .75rem; }
+        .title { font-weight: 600; }
+        .row { display: flex; align-items: center; gap: .5rem; }
+        .date { font-variant-numeric: tabular-nums; }
+        .space-between { justify-content: space-between; width: 100%; }
+        .title-btn { background: none; border: none; color: inherit; cursor: pointer; padding: 0; font: inherit; text-align: left; }
+        .details { display: none; margin-top: .5rem; padding-top: .5rem; border-top: 1px solid #0002; }
+        .right { display:flex; gap:.5rem; align-items:center; }
+
+        /* Theme toggle styles */
+        #themeToggle { padding: .4rem .6rem; border-radius: 6px; border: 1px solid #0002; background: transparent; color: inherit; cursor: pointer; }
+
+        /* Light/Dark Theme Overrides */
+        body.theme-light { background: #f7f7f7; color: #111; }
+        body.theme-dark { background: #121212; color: #eee; }
+
+        body.theme-light header { background: #f0f0f0; color: #111; }
+        body.theme-dark header { background: #222; color: #fff; }
+
+        body.theme-light .card { background: #ffffff; border-color: #0002; }
+        body.theme-dark .card { background: #1e1e1e; border-color: #ffffff22; }
+
+        body.theme-light li { border-bottom-color: #0002; }
+        body.theme-dark li { border-bottom-color: #ffffff22; }
+
+        body.theme-light .details { border-top-color: #0002; }
+        body.theme-dark .details { border-top-color: #ffffff33; }
+
+        /* Form controls and buttons theming */
+        input, select, textarea, button { font: inherit; }
+        button:not(.title-btn) { cursor: pointer; }
+
+        /* Light theme controls */
+        body.theme-light input,
+        body.theme-light select,
+        body.theme-light textarea {
+            background: #ffffff;
+            color: #111;
+            border: 1px solid #0002;
+            border-radius: 6px;
+        }
+        body.theme-light button:not(.title-btn) {
+            background: #f7f7f7;
+            color: #111;
+            border: 1px solid #0002;
+            border-radius: 6px;
+        }
+        body.theme-light button:not(.title-btn):hover {
+            background: #ececec;
         }
 
-        body {
-            font-family: system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif;
-            margin: 0;
-            background-color: var(--primary-bg);
-            color: var(--text-color);
+        /* Dark theme controls */
+        body.theme-dark input,
+        body.theme-dark select,
+        body.theme-dark textarea {
+            background: #2a2a2a;
+            color: #eee;
+            border: 1px solid #ffffff22;
+            border-radius: 6px;
+        }
+        body.theme-dark button:not(.title-btn) {
+            background: #2a2a2a;
+            color: #eee;
+            border: 1px solid #ffffff22;
+            border-radius: 6px;
+        }
+        body.theme-dark button:not(.title-btn):hover {
+            background: #333333;
         }
 
-        header {
-            padding: 1rem;
-            background: var(--secondary-bg);
-            color: #fff;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        /* Focus styles for accessibility */
+        body.theme-light input:focus,
+        body.theme-light select:focus,
+        body.theme-light textarea:focus,
+        body.theme-light button:not(.title-btn):focus {
+            outline: 2px solid #6ca8ff;
+            outline-offset: 1px;
+        }
+        body.theme-dark input:focus,
+        body.theme-dark select:focus,
+        body.theme-dark textarea:focus,
+        body.theme-dark button:not(.title-btn):focus {
+            outline: 2px solid #5b8cff;
+            outline-offset: 1px;
         }
 
-        h1 {
-            font-size: 1.5rem;
-            margin: 0;
-        }
+        /* Ensure theme toggle border adapts per theme */
+        body.theme-dark #themeToggle { border-color: #ffffff22; }
+        body.theme-light #themeToggle { border-color: #0002; }
 
-        main {
-            display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 1rem;
-            padding: 2rem;
-        }
-
-        .card {
-            background: var(--card-bg);
-            border: 1px solid var(--card-border);
-            border-radius: 12px;
-            padding: 1.5rem;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            transition: transform 0.2s;
-        }
-
-        .card:hover {
-            transform: translateY(-4px);
-        }
-
-        ul {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-
-        li {
-            padding: 1rem;
-            border-bottom: 1px solid var(--card-border);
-            display: flex;
-            flex-direction: column;
-            align-items: stretch;
-            gap: 0.75rem;
-        }
-
-        .muted {
-            opacity: 0.8;
-            color: var(--muted-text);
-        }
-
-        .toolbar {
-            display: flex;
-            gap: 0.5rem;
-            margin-bottom: 1rem;
-        }
-
-        input, button {
-            padding: 0.75rem 1rem;
-            border: 1px solid var(--input-border);
-            border-radius: 8px;
-            font-size: 1rem;
-        }
-
-        input:focus {
-            outline: none;
-            border-color: var(--input-focus);
-            box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
-        }
-
-        button {
-            background: var(--button-bg);
-            color: var(--button-text);
+        /* File input “Durchsuchen” button theming */
+        /* Modern browsers */
+        body.theme-light input[type="file"]::file-selector-button {
+            background: #f7f7f7;
+            color: #111;
+            border: 1px solid #0002;
+            border-radius: 6px;
+            padding: .5rem .75rem;
+            margin-right: .5rem;
             cursor: pointer;
-            transition: background 0.2s;
         }
-
-        button:hover {
-            background: var(--button-hover-bg);
+        body.theme-light input[type="file"]::file-selector-button:hover { background: #ececec; }
+        body.theme-light input[type="file"]::file-selector-button:focus {
+            outline: 2px solid #6ca8ff;
+            outline-offset: 1px;
         }
-
-        .title {
-            font-weight: 600;
-            font-size: 1.1rem;
-        }
-
-        .row {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
-
-        .date {
-            font-variant-numeric: tabular-nums;
-            font-size: 0.9rem;
-            color: var(--muted-text);
-        }
-
-        .space-between {
-            justify-content: space-between;
-            width: 100%;
-        }
-
-        .title-btn {
-            background: none;
-            border: none;
-            color: var(--button-bg);
+        body.theme-dark input[type="file"]::file-selector-button {
+            background: #2a2a2a;
+            color: #eee;
+            border: 1px solid #ffffff22;
+            border-radius: 6px;
+            padding: .5rem .75rem;
+            margin-right: .5rem;
             cursor: pointer;
-            text-align: left;
-            font-size: 1rem;
-            text-decoration: underline;
+        }
+        body.theme-dark input[type="file"]::file-selector-button:hover { background: #333333; }
+        body.theme-dark input[type="file"]::file-selector-button:focus {
+            outline: 2px solid #5b8cff;
+            outline-offset: 1px;
         }
 
-        .details {
-            display: none;
-            margin-top: 0.75rem;
-            padding-top: 0.75rem;
-            border-top: 1px dashed var(--card-border);
+        /* WebKit fallback */
+        body.theme-light input[type="file"]::-webkit-file-upload-button {
+            background: #f7f7f7;
+            color: #111;
+            border: 1px solid #0002;
+            border-radius: 6px;
+            padding: .5rem .75rem;
+            margin-right: .5rem;
+            cursor: pointer;
         }
-
-        .right {
-            display: flex;
-            gap: 0.75rem;
-            align-items: center;
+        body.theme-light input[type="file"]::-webkit-file-upload-button:hover { background: #ececec; }
+        body.theme-light input[type="file"]::-webkit-file-upload-button:focus {
+            outline: 2px solid #6ca8ff;
+            outline-offset: 1px;
         }
-
-        #logoutBtn {
-            background: var(--button-bg);
-            border: none;
-            color: var(--button-text);
-            padding: 0.5rem 1rem;
-            border-radius: 8px;
-            font-size: 0.9rem;
+        body.theme-dark input[type="file"]::-webkit-file-upload-button {
+            background: #2a2a2a;
+            color: #eee;
+            border: 1px solid #ffffff22;
+            border-radius: 6px;
+            padding: .5rem .75rem;
+            margin-right: .5rem;
+            cursor: pointer;
         }
-
-        #logoutBtn:hover {
-            background: var(--button-hover-bg);
-        }
-
-        small {
-            font-size: 0.8rem;
+        body.theme-dark input[type="file"]::-webkit-file-upload-button:hover { background: #333333; }
+        body.theme-dark input[type="file"]::-webkit-file-upload-button:focus {
+            outline: 2px solid #5b8cff;
+            outline-offset: 1px;
         }
     </style>
 </head>
@@ -179,6 +170,7 @@
 <header>
     <h1>Shreddit — Documents</h1>
     <div class="right">
+        <button id="themeToggle" aria-label="Toggle theme">🌙</button>
         <span id="userInfo" class="muted" style="display:none"></span>
         <button id="logoutBtn" style="display:none">Logout</button>
     </div>
@@ -188,22 +180,22 @@
         <h2>Log In or Register</h2>
         <form id="authForm">
             <div class="row">
-                <input id="authUsername" placeholder="Username" required/>
+                <input id="authUsername" placeholder="Username" required />
             </div>
             <div class="row">
-                <input id="authPassword" type="password" placeholder="Password" required/>
+                <input id="authPassword" type="password" placeholder="Password" required />
             </div>
             <div class="row" style="gap:.5rem">
                 <button id="loginBtn">Log In</button>
                 <button id="registerBtn" type="button">Register</button>
             </div>
-            <div id="authMsg" class="muted" style="margin-top:1rem"></div>
+            <div id="authMsg" class="muted" style="margin-top:.5rem"></div>
         </form>
     </section>
 
     <section class="card" id="listCard" style="display:none;">
         <div class="toolbar">
-            <input id="search" placeholder="Filter by title..."/>
+            <input id="search" placeholder="Filter by title..." />
             <button id="refresh">Refresh</button>
         </div>
         <ul id="list"></ul>
@@ -212,10 +204,10 @@
         <h2>Upload Document</h2>
         <form id="uploadForm">
             <div class="row">
-                <input id="title" name="title" placeholder="Title (optional)"/>
+                <input id="title" name="title" placeholder="Title (optional)" />
             </div>
             <div class="row">
-                <input id="file" name="file" type="file" accept="application/pdf,.pdf" required/>
+                <input id="file" name="file" type="file" accept="application/pdf,.pdf" required />
             </div>
             <div class="row">
                 <button type="submit">Upload PDF</button>
@@ -224,7 +216,7 @@
                 <small class="muted">Only PDF files are allowed.</small>
             </div>
         </form>
-        <div id="msg" class="muted" style="margin-top:1rem"></div>
+        <div id="msg" class="muted" style="margin-top:.5rem"></div>
     </section>
 </main>
 <script src="/assets/api.js"></script>
@@ -235,41 +227,28 @@
     const uploadCard = document.getElementById('upload');
     const userInfo = document.getElementById('userInfo');
     const logoutBtn = document.getElementById('logoutBtn');
+    const themeToggle = document.getElementById('themeToggle');
 
     function isLoggedIn() {
-        try {
-            return !!localStorage.getItem('jwt');
-        } catch (_) {
-            return false;
-        }
+        try { return !!localStorage.getItem('jwt'); } catch (_) { return false; }
     }
-
     function getUsername() {
-        try {
-            return localStorage.getItem('username') || '';
-        } catch (_) {
-            return '';
-        }
+        try { return localStorage.getItem('username') || ''; } catch (_) { return ''; }
     }
-
     function setAuth(token, username) {
         try {
             localStorage.setItem('jwt', token);
             localStorage.setItem('username', username || '');
-        } catch (_) {
-        }
+        } catch (_) {}
         applyAuthState();
     }
-
     function clearAuth() {
         try {
             localStorage.removeItem('jwt');
             localStorage.removeItem('username');
-        } catch (_) {
-        }
+        } catch (_) {}
         applyAuthState();
     }
-
     function applyAuthState() {
         const logged = isLoggedIn();
         authCard.style.display = logged ? 'none' : 'block';
@@ -286,9 +265,27 @@
             if (listEl) listEl.innerHTML = '';
         }
     }
+    logoutBtn.addEventListener('click', () => { clearAuth(); });
 
-    logoutBtn.addEventListener('click', () => {
-        clearAuth();
+    // Theme toggle
+    function applyTheme(theme) {
+        const mode = theme === 'dark' ? 'dark' : 'light';
+        document.body.classList.remove('theme-light', 'theme-dark');
+        document.body.classList.add('theme-' + mode);
+        if (themeToggle) { themeToggle.textContent = mode === 'dark' ? '☀️' : '🌙'; }
+    }
+    function loadTheme() {
+        let t = 'light';
+        try {
+            t = localStorage.getItem('theme') || 'light';
+        } catch (_) {}
+        applyTheme(t);
+    }
+    themeToggle?.addEventListener('click', () => {
+        const isDark = document.body.classList.contains('theme-dark');
+        const next = isDark ? 'light' : 'dark';
+        try { localStorage.setItem('theme', next); } catch (_) {}
+        applyTheme(next);
     });
 
     // Auth handlers
@@ -307,17 +304,13 @@
         e.preventDefault();
         await doAuth('/api/auth/register');
     });
-
     async function doAuth(url) {
         authMsg.textContent = '';
         const username = authUsername.value.trim();
         const password = authPassword.value;
-        if (!username || !password) {
-            authMsg.textContent = 'Enter username and password.';
-            return;
-        }
+        if (!username || !password) { authMsg.textContent = 'Enter username and password.'; return; }
         try {
-            const res = await apiFetch(url, {method: 'POST', body: JSON.stringify({username, password})});
+            const res = await apiFetch(url, { method: 'POST', body: JSON.stringify({ username, password }) });
             if (!res.ok) {
                 const data = await res.json().catch(() => ({}));
                 authMsg.textContent = data.error || 'Authentication failed';
@@ -373,7 +366,7 @@
             del.textContent = 'Delete';
             del.onclick = async () => {
                 if (!confirm('Delete this document?')) return;
-                const res = await apiFetch(`/api/documents/${d.id}`, {method: 'DELETE'});
+                const res = await apiFetch(`/api/documents/${d.id}`, { method: 'DELETE' });
                 if (res.ok) {
                     docs = docs.filter(x => x.id !== d.id);
                     render();
@@ -431,19 +424,11 @@
             const d = typeof dt === 'string' ? new Date(dt) : dt;
             if (Number.isNaN(d.getTime())) return '(no date)';
             return d.toLocaleString();
-        } catch (_) {
-            return '(no date)';
-        }
+        } catch (_) { return '(no date)'; }
     }
 
     function escapeHtml(s) {
-        return String(s).replace(/[&<>"']/g, c => ({
-            '&': '&amp;',
-            '<': '&lt;',
-            '>': '&gt;',
-            '"': '&quot;',
-            '\'': '&#39;'
-        }[c]));
+        return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]));
     }
 
     searchEl?.addEventListener('input', render);
@@ -454,10 +439,7 @@
         e.preventDefault();
         msgEl.textContent = '';
         const file = fileInput.files[0];
-        if (!file) {
-            msgEl.textContent = 'Please choose a PDF file.';
-            return;
-        }
+        if (!file) { msgEl.textContent = 'Please choose a PDF file.'; return; }
         if (!/pdf$/i.test(file.type) && !/\.pdf$/i.test(file.name)) {
             msgEl.textContent = 'Only PDF files are allowed.';
             return;
@@ -467,7 +449,7 @@
         if (titleInput.value) fd.append('title', titleInput.value);
 
         try {
-            const res = await apiFetch('/api/documents/upload', {method: 'POST', body: fd});
+            const res = await apiFetch('/api/documents/upload', { method: 'POST', body: fd });
             if (!res.ok) throw new Error('Upload failed');
             const created = await res.json();
             if (!created.createdAt) created.createdAt = new Date().toISOString();
@@ -482,6 +464,7 @@
     });
 
     // Init
+    loadTheme();
     applyAuthState();
 </script>
 </body>
