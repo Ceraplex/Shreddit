@@ -13,6 +13,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
 @Service
@@ -29,8 +31,17 @@ public class StorageService {
     }
 
     public String upload(MultipartFile file) {
+        return upload(file, "anonymous");
+    }
+
+    public String upload(MultipartFile file, String username) {
         String objectName = Objects.requireNonNullElse(file.getOriginalFilename(), file.getName());
         String contentType = file.getContentType() != null ? file.getContentType() : MediaType.APPLICATION_OCTET_STREAM_VALUE;
+
+        // Create user metadata
+        Map<String, String> userMetadata = new HashMap<>();
+        userMetadata.put("uploaded-by", username);
+
         try (InputStream is = file.getInputStream()) {
             minioClient.putObject(
                     PutObjectArgs.builder()
@@ -38,9 +49,10 @@ public class StorageService {
                             .object(objectName)
                             .stream(is, file.getSize(), -1)
                             .contentType(contentType)
+                            .userMetadata(userMetadata)
                             .build()
             );
-            log.info("Uploaded '{}' to bucket '{}'", objectName, bucket);
+            log.info("Uploaded '{}' to bucket '{}' by user '{}'", objectName, bucket, username);
             return objectName;
         } catch (Exception e) {
             log.error("Failed to upload to MinIO: {}", e.getMessage(), e);

@@ -8,6 +8,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -33,9 +35,15 @@ public class DocumentFilesController {
     @PostMapping(value = "/documents/upload")
     public ResponseEntity<Map<String, Object>> upload(@RequestParam("file") MultipartFile file,
                                                       @RequestParam(value = "title", required = false) String title) {
-        String objectName = storageService.upload(file);
+        // Get current authenticated user
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String username = auth != null ? auth.getName() : "anonymous";
+
+        // Upload file with user information
+        String objectName = storageService.upload(file, username);
+
         // Notify OCR worker via RabbitMQ
-        OcrFileRequestDto msg = new OcrFileRequestDto(bucket, objectName);
+        OcrFileRequestDto msg = new OcrFileRequestDto(bucket, objectName, username);
         rabbitMQService.sendOcrFileRequest(msg);
 
         // Build a JSON object similar to RootController contract so frontend can res.json()
@@ -47,6 +55,7 @@ public class DocumentFilesController {
         response.put("filename", objectName);
         response.put("objectName", objectName);
         response.put("bucket", bucket);
+        response.put("uploadedBy", username);
         return ResponseEntity.status(201).body(response);
     }
 

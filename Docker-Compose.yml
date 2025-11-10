@@ -64,7 +64,7 @@ services:
       retries: 10
 
   ui:
-    image: nginx:1.27
+    image: nginx:latest
     container_name: shreddit_ui
     depends_on:
       - backend
