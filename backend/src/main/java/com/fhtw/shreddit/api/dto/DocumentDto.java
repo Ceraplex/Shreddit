@@ -16,6 +16,8 @@ public class DocumentDto {
     private String content;
     private LocalDateTime createdAt;
     private String username;
+    // Name of the stored object in MinIO (may differ from title)
+    private String filename;
 
     public DocumentDto() {}
     @JsonCreator
@@ -71,5 +73,13 @@ public class DocumentDto {
 
     public void setUsername(String username) {
         this.username = username;
+    }
+
+    public String getFilename() {
+        return filename;
+    }
+
+    public void setFilename(String filename) {
+        this.filename = filename;
     }
 }

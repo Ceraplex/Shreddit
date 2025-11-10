@@ -2,7 +2,9 @@ CREATE TABLE IF NOT EXISTS public.document_entity (
     id BIGSERIAL PRIMARY KEY,
     title TEXT,
     content TEXT,
-    created_at TIMESTAMP NULL
+    created_at TIMESTAMP NULL,
+    username TEXT,
+    filename TEXT
 );
 
 -- Users table for authentication

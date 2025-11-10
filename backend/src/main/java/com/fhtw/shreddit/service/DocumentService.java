@@ -71,6 +71,7 @@ public class DocumentService {
         entity.setContent(doc.getContent());
         entity.setCreatedAt(doc.getCreatedAt());
         entity.setUsername(doc.getUsername());
+        entity.setFilename(doc.getFilename());
         return entity;
     }
 
@@ -81,6 +82,7 @@ public class DocumentService {
         doc.setContent(entity.getContent());
         doc.setCreatedAt(entity.getCreatedAt());
         doc.setUsername(entity.getUsername());
+        doc.setFilename(entity.getFilename());
         return doc;
     }
 }

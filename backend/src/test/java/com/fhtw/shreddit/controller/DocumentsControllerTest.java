@@ -2,6 +2,7 @@ package com.fhtw.shreddit.controller;
 
 import com.fhtw.shreddit.api.dto.DocumentDto;
 import com.fhtw.shreddit.service.DocumentService;
+import com.fhtw.shreddit.service.StorageService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -24,6 +25,9 @@ class DocumentsControllerTest {
 
     @Mock
     private DocumentService documentService;
+
+    @Mock
+    private StorageService storageService;
 
     @InjectMocks
     private DocumentsController documentsController;
@@ -104,14 +108,18 @@ class DocumentsControllerTest {
 
     @Test
     void deleteDocumentReturnsNoContent() {
-        // Arrange
+        // Arrange: return a document with null username to bypass auth check
+        DocumentDto doc = new DocumentDto(1L, "Test Document 1", "Content 1", LocalDateTime.now(), null);
+        when(documentService.getById(1L)).thenReturn(java.util.Optional.of(doc));
         doNothing().when(documentService).delete(1L);
+        when(storageService.deleteObject(doc.getTitle())).thenReturn(true);
 
         // Act
         ResponseEntity<Void> response = documentsController.deleteDocument(1L);
 
         // Assert
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+        verify(storageService, times(1)).deleteObject(doc.getTitle());
         verify(documentService, times(1)).delete(1L);
     }
 }

@@ -28,6 +28,10 @@ public class Document {
     @Column(name = "username")
     private String username;
 
+    // Stores the exact object name in MinIO used for this document
+    @Column(name = "filename")
+    private String filename;
+
     public Document() {}
 
     @PrePersist
@@ -75,5 +79,13 @@ public class Document {
 
     public void setUsername(String username) {
         this.username = username;
+    }
+
+    public String getFilename() {
+        return filename;
+    }
+
+    public void setFilename(String filename) {
+        this.filename = filename;
     }
 }

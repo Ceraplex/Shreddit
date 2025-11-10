@@ -56,6 +56,7 @@ public class DocumentFilesController {
         documentDto.setTitle(effectiveTitle);
         documentDto.setContent(""); // Will be populated by OCR worker
         documentDto.setUsername(username);
+        documentDto.setFilename(objectName);
         DocumentDto createdDoc = documentService.create(documentDto);
 
         // Build a JSON object similar to RootController contract so frontend can res.json()

@@ -5,6 +5,7 @@ import io.minio.MinioClient;
 import io.minio.PutObjectArgs;
 import io.minio.StatObjectArgs;
 import io.minio.StatObjectResponse;
+import io.minio.RemoveObjectArgs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -111,6 +112,30 @@ public class StorageService {
         } catch (Exception e) {
             log.error("Failed to download file '{}' from bucket '{}': {}", name, bucket, e.getMessage(), e);
             return ResponseEntity.status(500).build(); // Internal Server Error
+        }
+    }
+
+    public boolean deleteObject(String name) {
+        try {
+            // Check if object exists
+            try {
+                minioClient.statObject(StatObjectArgs.builder().bucket(bucket).object(name).build());
+            } catch (Exception e) {
+                log.warn("Attempted to delete non-existent object '{}' in bucket '{}'", name, bucket);
+                return false;
+            }
+
+            minioClient.removeObject(
+                    RemoveObjectArgs.builder()
+                            .bucket(bucket)
+                            .object(name)
+                            .build()
+            );
+            log.info("Deleted object '{}' from bucket '{}'", name, bucket);
+            return true;
+        } catch (Exception e) {
+            log.error("Failed to delete object '{}' from bucket '{}': {}", name, bucket, e.getMessage(), e);
+            return false;
         }
     }
 }
