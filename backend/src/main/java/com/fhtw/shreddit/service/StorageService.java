@@ -3,6 +3,8 @@ package com.fhtw.shreddit.service;
 import io.minio.GetObjectArgs;
 import io.minio.MinioClient;
 import io.minio.PutObjectArgs;
+import io.minio.StatObjectArgs;
+import io.minio.StatObjectResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -57,6 +59,22 @@ public class StorageService {
         } catch (Exception e) {
             log.error("Failed to upload to MinIO: {}", e.getMessage(), e);
             throw new RuntimeException("Failed to upload file", e);
+        }
+    }
+
+    /**
+     * Get the username of the user who uploaded the file
+     * @param name The name of the file
+     * @return The username of the uploader, or null if not found
+     */
+    public String getUploader(String name) {
+        try {
+            StatObjectResponse stat = minioClient.statObject(
+                    StatObjectArgs.builder().bucket(bucket).object(name).build());
+            return stat.userMetadata().get("uploaded-by");
+        } catch (Exception e) {
+            log.error("Failed to get metadata from MinIO: {}", e.getMessage(), e);
+            return null;
         }
     }
 

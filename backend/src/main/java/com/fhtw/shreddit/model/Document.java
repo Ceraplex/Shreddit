@@ -25,6 +25,9 @@ public class Document {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
+    @Column(name = "username")
+    private String username;
+
     public Document() {}
 
     @PrePersist
@@ -64,5 +67,13 @@ public class Document {
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
     }
 }

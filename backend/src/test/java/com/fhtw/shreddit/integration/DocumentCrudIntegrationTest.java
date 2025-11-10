@@ -94,7 +94,7 @@ public class DocumentCrudIntegrationTest {
                 .andExpect(status().isForbidden());
 
         // Try to create a document without authentication
-        DocumentDto newDocument = new DocumentDto(null, "Unauthorized Test", "This should fail", null);
+        DocumentDto newDocument = new DocumentDto(null, "Unauthorized Test", "This should fail", null, TEST_USERNAME);
         mockMvc.perform(post("/documents")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(newDocument)))

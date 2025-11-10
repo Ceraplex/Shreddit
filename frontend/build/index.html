@@ -383,10 +383,31 @@
                 }
             };
 
+            // Add download button
+            const download = document.createElement('button');
+            download.textContent = 'Download';
+            download.onclick = () => {
+                // Use the objectName if available, otherwise use the title
+                const fileName = d.objectName || d.filename || `document-${d.id}.pdf`;
+                window.open(`/documents/download/${fileName}`, '_blank');
+            };
+
             const headerRow = document.createElement('div');
             headerRow.className = 'row space-between';
             headerRow.appendChild(left);
-            headerRow.appendChild(del);
+
+            // Create a container for the buttons
+            const buttonContainer = document.createElement('div');
+            buttonContainer.className = 'row';
+            buttonContainer.style.gap = '0.5rem';
+
+            // Add download button to the container
+            buttonContainer.appendChild(download);
+            // Add delete button to the container
+            buttonContainer.appendChild(del);
+
+            // Add the button container to the header row
+            headerRow.appendChild(buttonContainer);
 
             const details = document.createElement('div');
             details.className = 'details';

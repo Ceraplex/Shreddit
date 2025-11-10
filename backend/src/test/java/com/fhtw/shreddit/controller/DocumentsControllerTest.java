@@ -34,8 +34,8 @@ class DocumentsControllerTest {
     @BeforeEach
     void setUp() {
         // Create test documents
-        testDocument1 = new DocumentDto(1L, "Test Document 1", "Content 1", LocalDateTime.now());
-        testDocument2 = new DocumentDto(2L, "Test Document 2", "Content 2", LocalDateTime.now());
+        testDocument1 = new DocumentDto(1L, "Test Document 1", "Content 1", LocalDateTime.now(), "testuser");
+        testDocument2 = new DocumentDto(2L, "Test Document 2", "Content 2", LocalDateTime.now(), "testuser");
     }
 
     @Test
@@ -87,9 +87,9 @@ class DocumentsControllerTest {
     @Test
     void createDocumentReturnsCreatedWithDocumentInfo() {
         // Arrange
-        DocumentDto newDocument = new DocumentDto(null, "New Document", "New Content", null);
-        DocumentDto createdDocument = new DocumentDto(3L, "New Document", "New Content", LocalDateTime.now());
-        
+        DocumentDto newDocument = new DocumentDto(null, "New Document", "New Content", null, "testuser");
+        DocumentDto createdDocument = new DocumentDto(3L, "New Document", "New Content", LocalDateTime.now(), "testuser");
+
         when(documentService.create(newDocument)).thenReturn(createdDocument);
 
         // Act

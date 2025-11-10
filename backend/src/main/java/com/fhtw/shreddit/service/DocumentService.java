@@ -7,6 +7,8 @@ import com.fhtw.shreddit.model.DocumentEntity;
 import com.fhtw.shreddit.repository.DocumentRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -26,7 +28,12 @@ public class DocumentService {
     }
 
     public List<DocumentDto> getAll() {
+        // Get current authenticated user
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String username = auth != null ? auth.getName() : "anonymous";
+
         return repository.findAll().stream()
+                .filter(doc -> doc.getUsername() == null || doc.getUsername().equals(username))
                 .map(this::toDto)
                 .collect(Collectors.toList());
     }
@@ -63,6 +70,7 @@ public class DocumentService {
         entity.setTitle(doc.getTitle());
         entity.setContent(doc.getContent());
         entity.setCreatedAt(doc.getCreatedAt());
+        entity.setUsername(doc.getUsername());
         return entity;
     }
 
@@ -72,6 +80,7 @@ public class DocumentService {
         doc.setTitle(entity.getTitle());
         doc.setContent(entity.getContent());
         doc.setCreatedAt(entity.getCreatedAt());
+        doc.setUsername(entity.getUsername());
         return doc;
     }
 }

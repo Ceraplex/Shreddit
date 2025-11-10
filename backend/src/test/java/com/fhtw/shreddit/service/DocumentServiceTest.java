@@ -42,23 +42,25 @@ class DocumentServiceTest {
     @BeforeEach
     void setUp() {
         now = LocalDateTime.now();
-        
+
         // Create test entities
         testEntity1 = new DocumentEntity();
         testEntity1.setId(1L);
         testEntity1.setTitle("Test Document 1");
         testEntity1.setContent("Content 1");
         testEntity1.setCreatedAt(now);
+        testEntity1.setUsername("testuser");
 
         testEntity2 = new DocumentEntity();
         testEntity2.setId(2L);
         testEntity2.setTitle("Test Document 2");
         testEntity2.setContent("Content 2");
         testEntity2.setCreatedAt(now);
+        testEntity2.setUsername("testuser");
 
         // Create test DTOs
-        testDto1 = new DocumentDto(1L, "Test Document 1", "Content 1", now);
-        testDto2 = new DocumentDto(2L, "Test Document 2", "Content 2", now);
+        testDto1 = new DocumentDto(1L, "Test Document 1", "Content 1", now, "testuser");
+        testDto2 = new DocumentDto(2L, "Test Document 2", "Content 2", now, "testuser");
     }
 
     @Test
@@ -109,13 +111,13 @@ class DocumentServiceTest {
     @Test
     void createSavesDocumentAndSendsOcrRequest() {
         // Arrange
-        DocumentDto newDto = new DocumentDto(null, "New Document", "New Content", null);
+        DocumentDto newDto = new DocumentDto(null, "New Document", "New Content", null, "testuser");
         DocumentEntity savedEntity = new DocumentEntity();
         savedEntity.setId(3L);
         savedEntity.setTitle("New Document");
         savedEntity.setContent("New Content");
         savedEntity.setCreatedAt(now);
-        
+
         when(documentRepository.save(any(DocumentEntity.class))).thenReturn(savedEntity);
         doNothing().when(rabbitMQService).sendOcrRequest(any(OcrRequestDto.class));
 
@@ -127,7 +129,7 @@ class DocumentServiceTest {
         assertEquals("New Document", result.getTitle());
         assertEquals("New Content", result.getContent());
         assertNotNull(result.getCreatedAt());
-        
+
         verify(documentRepository, times(1)).save(any(DocumentEntity.class));
         verify(rabbitMQService, times(1)).sendOcrRequest(any(OcrRequestDto.class));
     }
@@ -135,7 +137,7 @@ class DocumentServiceTest {
     @Test
     void createThrowsExceptionWhenSaveFails() {
         // Arrange
-        DocumentDto newDto = new DocumentDto(null, "New Document", "New Content", null);
+        DocumentDto newDto = new DocumentDto(null, "New Document", "New Content", null, "testuser");
         when(documentRepository.save(any(DocumentEntity.class))).thenThrow(new RuntimeException("Database error"));
 
         // Act & Assert
