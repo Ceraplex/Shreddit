@@ -75,9 +75,10 @@ public class DocumentFilesController {
         try {
             // Get current authenticated user
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-            String username = auth != null ? auth.getName() : "anonymous";
+            String username = (auth != null ? auth.getName() : "anonymous");
+            boolean isAuthenticated = auth != null && auth.isAuthenticated() && !"anonymousUser".equals(username);
 
-            log.info("Download request for file '{}' by user '{}'", name, username);
+            log.info("Download request for file '{}' by user '{}' (authenticated={})", name, username, isAuthenticated);
 
             // Get the uploader of the file
             String uploader = storageService.getUploader(name);
@@ -89,13 +90,16 @@ public class DocumentFilesController {
                 log.info("File '{}' was uploaded by '{}'", name, uploader);
             }
 
-            // Check if the current user is the uploader or if the uploader is null (for backward compatibility)
-            if (uploader == null || uploader.equals(username)) {
+            // Allow download if:
+            // - No uploader metadata exists (backward compatibility), OR
+            // - Request is unauthenticated (public download), OR
+            // - Authenticated user is the uploader
+            if (uploader == null || !isAuthenticated || uploader.equals(username)) {
                 ResponseEntity<InputStreamResource> response = storageService.download(name);
                 if (response.getStatusCode().is2xxSuccessful()) {
                     log.info("Download successful for file '{}' by user '{}'", name, username);
                 } else {
-                    log.warn("Download failed for file '{}' by user '{}' with status {}", 
+                    log.warn("Download failed for file '{}' by user '{}' with status {}",
                             name, username, response.getStatusCode());
                 }
                 return response;
