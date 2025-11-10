@@ -39,7 +39,7 @@ public class RootController {
                 .build();
     }
 
-    @PostMapping(path = {"", "/", "/api", "/api/", "/api/documents/upload", "/documents/upload", "/api/documents", "/documents"})
+    @PostMapping(path = "/upload")
     public ResponseEntity<?> uploadPdf(@RequestParam("file") MultipartFile file, @RequestParam(value = "title", required = false) String title) {
         if (file.isEmpty()) {
             return ResponseEntity.badRequest().body("Please upload a file");

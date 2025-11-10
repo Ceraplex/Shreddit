@@ -450,6 +450,8 @@
 
         try {
             const res = await apiFetch('/api/documents/upload', { method: 'POST', body: fd });
+            console.log(res);
+            console.log(res.ok);
             if (!res.ok) throw new Error('Upload failed');
             const created = await res.json();
             if (!created.createdAt) created.createdAt = new Date().toISOString();

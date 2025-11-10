@@ -32,4 +32,16 @@ public class RabbitMQService {
             throw new MessagePublishException("Failed to send OCR request", e);
         }
     }
+
+    // New: send OCR request for a file stored in object storage (MinIO)
+    public void sendOcrFileRequest(com.fhtw.shreddit.api.dto.OcrFileRequestDto request) {
+        try {
+            log.info("Sending OCR file request for bucket: {}, object: {}", request.getBucket(), request.getObjectName());
+            rabbitTemplate.convertAndSend(ocrQueueName, request);
+            log.info("OCR file request sent successfully for object: {}", request.getObjectName());
+        } catch (AmqpException e) {
+            log.error("Failed to send OCR file request for object: {}", request.getObjectName(), e);
+            throw new MessagePublishException("Failed to send OCR file request", e);
+        }
+    }
 }
