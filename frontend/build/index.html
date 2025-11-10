@@ -339,6 +339,14 @@
         if (!isLoggedIn()) return;
         try {
             const res = await apiFetch('/api/documents');
+            if (res.status === 403) {
+                // delete jwt token
+                console.log("deleting jwt");
+                localStorage.removeItem('jwt');
+                // send user to login page
+                applyAuthState();
+                console.log("should show login");
+            }
             if (!res.ok) throw new Error('Failed to load documents');
             docs = await res.json();
             render();
@@ -451,7 +459,14 @@
         try {
             const res = await apiFetch('/api/documents/upload', { method: 'POST', body: fd });
             console.log(res);
-            console.log(res.ok);
+            if (res.status === 403) {
+                // delete jwt token
+                console.log("deleting jwt");
+                localStorage.removeItem('jwt');
+                // send user to login page
+                applyAuthState();
+                console.log("should show login");
+            }
             if (!res.ok) throw new Error('Upload failed');
             const created = await res.json();
             if (!created.createdAt) created.createdAt = new Date().toISOString();
