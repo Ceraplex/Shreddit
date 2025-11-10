@@ -71,25 +71,46 @@ public class StorageService {
         try {
             StatObjectResponse stat = minioClient.statObject(
                     StatObjectArgs.builder().bucket(bucket).object(name).build());
-            return stat.userMetadata().get("uploaded-by");
+            String uploader = stat.userMetadata().get("uploaded-by");
+            if (uploader == null) {
+                log.warn("No uploader metadata found for file: {}", name);
+                // For backward compatibility, allow access to files without metadata
+                return null;
+            }
+            return uploader;
         } catch (Exception e) {
             log.error("Failed to get metadata from MinIO: {}", e.getMessage(), e);
+            // For backward compatibility, allow access to files that can't be stat'd
             return null;
         }
     }
 
     public ResponseEntity<InputStreamResource> download(String name) {
         try {
+            log.info("Attempting to download file '{}' from bucket '{}'", name, bucket);
+
+            // Check if the object exists first
+            try {
+                minioClient.statObject(StatObjectArgs.builder().bucket(bucket).object(name).build());
+            } catch (Exception e) {
+                log.error("File '{}' not found in bucket '{}': {}", name, bucket, e.getMessage());
+                return ResponseEntity.notFound().build();
+            }
+
+            // Get the object
             InputStream stream = minioClient.getObject(
                     GetObjectArgs.builder().bucket(bucket).object(name).build());
+
+            log.info("Successfully retrieved file '{}' from bucket '{}'", name, bucket);
+
             // We don't know exact type; serve as octet-stream and suggest filename
             return ResponseEntity.ok()
                     .contentType(MediaType.APPLICATION_OCTET_STREAM)
                     .header("Content-Disposition", "attachment; filename=\"" + name + "\"")
                     .body(new InputStreamResource(stream));
         } catch (Exception e) {
-            log.error("Failed to download from MinIO: {}", e.getMessage(), e);
-            return ResponseEntity.notFound().build();
+            log.error("Failed to download file '{}' from bucket '{}': {}", name, bucket, e.getMessage(), e);
+            return ResponseEntity.status(500).build(); // Internal Server Error
         }
     }
 }

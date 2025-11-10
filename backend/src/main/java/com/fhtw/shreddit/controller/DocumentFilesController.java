@@ -72,19 +72,40 @@ public class DocumentFilesController {
 
     @GetMapping("/documents/download/{name}")
     public ResponseEntity<InputStreamResource> download(@PathVariable("name") String name) {
-        // Get current authenticated user
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        String username = auth != null ? auth.getName() : "anonymous";
+        try {
+            // Get current authenticated user
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            String username = auth != null ? auth.getName() : "anonymous";
 
-        // Get the uploader of the file
-        String uploader = storageService.getUploader(name);
+            log.info("Download request for file '{}' by user '{}'", name, username);
 
-        // Check if the current user is the uploader or if the uploader is null (for backward compatibility)
-        if (uploader == null || uploader.equals(username)) {
-            return storageService.download(name);
-        } else {
-            log.warn("User '{}' attempted to download file '{}' uploaded by '{}'", username, name, uploader);
-            return ResponseEntity.status(403).build(); // Forbidden
+            // Get the uploader of the file
+            String uploader = storageService.getUploader(name);
+
+            // Log the uploader information
+            if (uploader == null) {
+                log.info("No uploader metadata found for file '{}', allowing download", name);
+            } else {
+                log.info("File '{}' was uploaded by '{}'", name, uploader);
+            }
+
+            // Check if the current user is the uploader or if the uploader is null (for backward compatibility)
+            if (uploader == null || uploader.equals(username)) {
+                ResponseEntity<InputStreamResource> response = storageService.download(name);
+                if (response.getStatusCode().is2xxSuccessful()) {
+                    log.info("Download successful for file '{}' by user '{}'", name, username);
+                } else {
+                    log.warn("Download failed for file '{}' by user '{}' with status {}", 
+                            name, username, response.getStatusCode());
+                }
+                return response;
+            } else {
+                log.warn("User '{}' attempted to download file '{}' uploaded by '{}'", username, name, uploader);
+                return ResponseEntity.status(403).build(); // Forbidden
+            }
+        } catch (Exception e) {
+            log.error("Error during download of file '{}': {}", name, e.getMessage(), e);
+            return ResponseEntity.status(500).build(); // Internal Server Error
         }
     }
 }

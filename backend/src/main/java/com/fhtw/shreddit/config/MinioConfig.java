@@ -27,20 +27,49 @@ public class MinioConfig {
 
     @Bean
     public MinioClient minioClient() {
+        log.info("Initializing MinIO client with endpoint: {}", endpoint);
+
         MinioClient client = MinioClient.builder()
                 .endpoint(endpoint)
                 .credentials(accessKey, secretKey)
                 .build();
-        // Ensure bucket exists
-        try {
-            boolean exists = client.bucketExists(BucketExistsArgs.builder().bucket(bucket).build());
-            if (!exists) {
-                log.info("Creating MinIO bucket: {}", bucket);
-                client.makeBucket(MakeBucketArgs.builder().bucket(bucket).build());
+
+        // Ensure bucket exists with multiple retries
+        int maxRetries = 5;
+        int retryDelayMs = 2000; // 2 seconds
+
+        for (int attempt = 1; attempt <= maxRetries; attempt++) {
+            try {
+                log.info("Checking if MinIO bucket '{}' exists (attempt {}/{})", bucket, attempt, maxRetries);
+                boolean exists = client.bucketExists(BucketExistsArgs.builder().bucket(bucket).build());
+
+                if (!exists) {
+                    log.info("Creating MinIO bucket: {}", bucket);
+                    client.makeBucket(MakeBucketArgs.builder().bucket(bucket).build());
+                    log.info("Successfully created MinIO bucket: {}", bucket);
+                } else {
+                    log.info("MinIO bucket '{}' already exists", bucket);
+                }
+
+                // If we get here, the bucket exists and we can break out of the retry loop
+                break;
+            } catch (Exception e) {
+                if (attempt < maxRetries) {
+                    log.warn("Failed to verify/create MinIO bucket '{}' (attempt {}/{}): {}", 
+                            bucket, attempt, maxRetries, e.getMessage());
+                    try {
+                        Thread.sleep(retryDelayMs);
+                    } catch (InterruptedException ie) {
+                        Thread.currentThread().interrupt();
+                        log.warn("Interrupted while waiting to retry MinIO bucket creation");
+                    }
+                } else {
+                    log.error("Failed to verify/create MinIO bucket '{}' after {} attempts: {}", 
+                            bucket, maxRetries, e.getMessage(), e);
+                }
             }
-        } catch (Exception e) {
-            log.warn("Failed to verify/create MinIO bucket '{}': {}", bucket, e.getMessage());
         }
+
         return client;
     }
 }
