@@ -3,11 +3,15 @@ package com.fhtw.ocrworker.service;
 import io.minio.GetObjectArgs;
 import io.minio.GetObjectResponse;
 import io.minio.MinioClient;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -27,11 +31,23 @@ class OcrProcessorServiceTest {
     @Mock
     private MinioClient minioClient;
 
+    @Mock
+    private RabbitTemplate rabbitTemplate;
+
     private OcrProcessorService ocrProcessorService;
+    private AutoCloseable mocks;
 
     @BeforeEach
     void setUp() {
-        ocrProcessorService = new OcrProcessorService(minioClient);
+        mocks = MockitoAnnotations.openMocks(this);
+        ocrProcessorService = new OcrProcessorService(minioClient, rabbitTemplate);
+    }
+
+    @AfterEach
+    void tearDown() throws Exception {
+        if (mocks != null) {
+            mocks.close();
+        }
     }
 
     @Test
@@ -61,7 +77,7 @@ class OcrProcessorServiceTest {
             // This test will only pass if the environment has Ghostscript and Tesseract installed
             // In a real environment, we would use a more sophisticated approach with test containers
             try {
-                ocrProcessorService.processPdf("test-bucket", "test-document.pdf");
+                ocrProcessorService.processPdf(1L, "test-bucket", "documents/1/input.pdf");
                 // If we get here without exception, the test passes
                 // In a real test, we would verify the OCR results
             } catch (Exception e) {

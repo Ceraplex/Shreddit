@@ -115,6 +115,34 @@ public class StorageService {
         }
     }
 
+    public ResponseEntity<InputStreamResource> downloadWithName(String name, String downloadFileName, MediaType contentType) {
+        try {
+            log.info("Attempting to download file '{}' from bucket '{}' as '{}'", name, bucket, downloadFileName);
+
+            // Check if the object exists first
+            try {
+                minioClient.statObject(StatObjectArgs.builder().bucket(bucket).object(name).build());
+            } catch (Exception e) {
+                log.error("File '{}' not found in bucket '{}': {}", name, bucket, e.getMessage());
+                return ResponseEntity.notFound().build();
+            }
+
+            // Get the object
+            InputStream stream = minioClient.getObject(
+                    GetObjectArgs.builder().bucket(bucket).object(name).build());
+
+            log.info("Successfully retrieved file '{}' from bucket '{}'", name, bucket);
+
+            return ResponseEntity.ok()
+                    .contentType(contentType)
+                    .header("Content-Disposition", "attachment; filename=\"" + downloadFileName + "\"")
+                    .body(new InputStreamResource(stream));
+        } catch (Exception e) {
+            log.error("Failed to download file '{}' from bucket '{}': {}", name, bucket, e.getMessage(), e);
+            return ResponseEntity.status(500).build();
+        }
+    }
+
     public boolean deleteObject(String name) {
         try {
             // Check if object exists

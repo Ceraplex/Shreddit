@@ -4,7 +4,9 @@ CREATE TABLE IF NOT EXISTS public.document_entity (
     content TEXT,
     created_at TIMESTAMP NULL,
     username TEXT,
-    filename TEXT
+    filename TEXT,
+    summary TEXT,
+    summary_status TEXT
 );
 
 -- Users table for authentication

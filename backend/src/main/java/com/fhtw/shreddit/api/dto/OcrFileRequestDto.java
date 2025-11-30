@@ -1,16 +1,26 @@
 package com.fhtw.shreddit.api.dto;
 
 public class OcrFileRequestDto {
+    private Long documentId;
     private String bucket;
     private String objectName;
     private String username;
 
     public OcrFileRequestDto() {}
 
-    public OcrFileRequestDto(String bucket, String objectName, String username) {
+    public OcrFileRequestDto(Long documentId, String bucket, String objectName, String username) {
+        this.documentId = documentId;
         this.bucket = bucket;
         this.objectName = objectName;
         this.username = username;
+    }
+
+    public Long getDocumentId() {
+        return documentId;
+    }
+
+    public void setDocumentId(Long documentId) {
+        this.documentId = documentId;
     }
 
     public String getBucket() {

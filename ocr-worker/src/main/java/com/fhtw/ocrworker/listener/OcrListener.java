@@ -28,13 +28,14 @@ public class OcrListener {
             log.warn("Received null OCR message");
             return;
         }
+        Long documentId = dto.getDocumentId();
         String bucket = dto.getBucket();
         String objectName = dto.getObjectName();
         String username = dto.getUsername() != null ? dto.getUsername() : "anonymous";
 
         log.info("Received OCR request: bucket={}, object={}, user={}", bucket, objectName, username);
         try {
-            ocrProcessorService.processPdf(bucket, objectName);
+            ocrProcessorService.processPdf(documentId, bucket, objectName);
             log.info("OCR processing completed: bucket={}, object={}, user={}", bucket, objectName, username);
         } catch (Exception e) {
             log.error("Error processing OCR for bucket={}, object={}, user={}", bucket, objectName, username, e);

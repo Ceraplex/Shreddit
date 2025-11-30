@@ -17,9 +17,17 @@ public class RabbitConfig {
     @Value("${rabbitmq.queue.ocr}")
     private String ocrQueueName;
 
+    @Value("${rabbitmq.queue.genai}")
+    private String genAiQueueName;
+
     @Bean
     public Queue ocrQueue() {
         return new Queue(ocrQueueName, true);
+    }
+
+    @Bean
+    public Queue genAiQueue() {
+        return new Queue(genAiQueueName, true);
     }
 
     @Bean

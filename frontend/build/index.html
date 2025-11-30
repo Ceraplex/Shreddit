@@ -403,6 +403,18 @@
 
             // Add download button to the container
             buttonContainer.appendChild(download);
+            // Add summary button based on status
+            if (d.summaryStatus === 'OK') {
+                const dlSummary = document.createElement('button');
+                dlSummary.textContent = 'Download Summary';
+                dlSummary.onclick = () => handleDownloadSummary(d.id);
+                buttonContainer.appendChild(dlSummary);
+            } else if (d.summaryStatus === 'PENDING') {
+                const dlSummaryPending = document.createElement('button');
+                dlSummaryPending.textContent = 'Summary pending…';
+                dlSummaryPending.disabled = true;
+                buttonContainer.appendChild(dlSummaryPending);
+            } // FAILED or missing -> hide button
             // Add delete button to the container
             buttonContainer.appendChild(del);
 
@@ -426,10 +438,15 @@
                             details.innerHTML = `<div class="muted">Details could not be loaded.</div>`;
                         } else {
                             const doc = await res.json();
+                            const hasSummary = doc.summaryStatus === 'OK';
+                            const summaryBlock = hasSummary
+                                ? `<div><strong>Summary:</strong><br><pre style="white-space:pre-wrap">${escapeHtml(doc.summary || '')}</pre></div>`
+                                : `<div class="muted"><strong>Summary:</strong> ${escapeHtml(doc.summaryStatus || 'PENDING')}</div>`;
                             details.innerHTML = `
                 <div><strong>Title:</strong> ${escapeHtml(doc.title || '(untitled)')}</div>
                 <div><strong>Uploaded:</strong> ${formatDate(doc.createdAt)}</div>
                 <div><strong>ID:</strong> ${doc.id}</div>
+                ${summaryBlock}
               `;
                             details.dataset.loaded = 'true';
                         }
@@ -458,6 +475,29 @@
 
     function escapeHtml(s) {
         return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]));
+    }
+
+    async function handleDownloadSummary(documentId) {
+        try {
+            const resp = await apiFetch(`/api/documents/${documentId}/summary/download`, { method: 'GET' });
+            if (!resp.ok) {
+                console.error('Failed to download summary', resp.status);
+                alert('Failed to download summary.');
+                return;
+            }
+            const blob = await resp.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `summary-${documentId}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            window.URL.revokeObjectURL(url);
+        } catch (e) {
+            console.error('Error while downloading summary', e);
+            alert('Error while downloading summary.');
+        }
     }
 
     searchEl?.addEventListener('input', render);
@@ -501,9 +541,36 @@
         }
     });
 
+    // Auto-refresh support
+    let autoRefreshTimer = null;
+    function startAutoRefresh(intervalMs = 10000) {
+        // Refresh every 10s by default while tab is visible and user is logged in
+        stopAutoRefresh();
+        autoRefreshTimer = setInterval(() => {
+            if (document.visibilityState === 'visible' && isLoggedIn()) {
+                load();
+            }
+        }, intervalMs);
+        document.addEventListener('visibilitychange', () => {
+            // Trigger a refresh immediately when returning to the tab
+            if (document.visibilityState === 'visible' && isLoggedIn()) {
+                load();
+            }
+        });
+    }
+    function stopAutoRefresh() {
+        if (autoRefreshTimer) {
+            clearInterval(autoRefreshTimer);
+            autoRefreshTimer = null;
+        }
+    }
+
     // Init
     loadTheme();
     applyAuthState();
+    // Trigger initial load and start periodic refresh
+    load();
+    startAutoRefresh(10000);
 </script>
 </body>
 </html>

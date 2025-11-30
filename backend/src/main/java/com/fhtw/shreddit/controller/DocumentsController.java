@@ -31,8 +31,22 @@ public class DocumentsController {
         return ResponseEntity.ok(documentService.getAll());
     }
 
+    // Alias with /api prefix for frontend compatibility
+    @GetMapping("/api/documents")
+    public ResponseEntity<List<DocumentDto>> getDocumentsApi() {
+        return ResponseEntity.ok(documentService.getAll());
+    }
+
     @GetMapping("/documents/{id}")
     public ResponseEntity<DocumentDto> getDocument(@PathVariable Long id) {
+        return documentService.getById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    // Alias with /api prefix for frontend compatibility
+    @GetMapping("/api/documents/{id}")
+    public ResponseEntity<DocumentDto> getDocumentApi(@PathVariable Long id) {
         return documentService.getById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());

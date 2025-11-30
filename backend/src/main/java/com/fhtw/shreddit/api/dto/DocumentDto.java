@@ -18,6 +18,8 @@ public class DocumentDto {
     private String username;
     // Name of the stored object in MinIO (may differ from title)
     private String filename;
+    private String summary;
+    private String summaryStatus;
 
     public DocumentDto() {}
     @JsonCreator
@@ -81,5 +83,21 @@ public class DocumentDto {
 
     public void setFilename(String filename) {
         this.filename = filename;
+    }
+
+    public String getSummary() {
+        return summary;
+    }
+
+    public void setSummary(String summary) {
+        this.summary = summary;
+    }
+
+    public String getSummaryStatus() {
+        return summaryStatus;
+    }
+
+    public void setSummaryStatus(String summaryStatus) {
+        this.summaryStatus = summaryStatus;
     }
 }

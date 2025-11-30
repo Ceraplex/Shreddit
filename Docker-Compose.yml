@@ -37,12 +37,46 @@ services:
       SPRING_RABBITMQ_USERNAME: guest
       SPRING_RABBITMQ_PASSWORD: guest
       RABBITMQ_QUEUE_OCR: ocr-queue
+      RABBITMQ_QUEUE_GENAI: genai-queue
       # MinIO
       MINIO_ENDPOINT: http://minio:9000
       MINIO_ACCESS_KEY: minioadmin
       MINIO_SECRET_KEY: minioadmin
     ports:
       - "8090:8090"
+    restart: unless-stopped
+
+  genai-worker:
+    build: ./genai-worker
+    container_name: shreddit_genai_worker
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      minio:
+        condition: service_started
+      db:
+        condition: service_healthy
+    environment:
+      # RabbitMQ
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: guest
+      SPRING_RABBITMQ_PASSWORD: guest
+      RABBITMQ_QUEUE_GENAI: genai-queue
+      # MinIO
+      MINIO_ENDPOINT: http://minio:9000
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin
+      MINIO_BUCKET: documents
+      # DB
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/shreddit
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      # Gemini
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      GEMINI_MODEL: gemini-2.0-flash
+      GEMINI_TEMPERATURE: 0.2
+      GEMINI_MAX_TOKENS: 512
     restart: unless-stopped
 
   db:

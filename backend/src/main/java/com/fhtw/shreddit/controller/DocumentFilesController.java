@@ -7,9 +7,10 @@ import com.fhtw.shreddit.service.RabbitMQService;
 import com.fhtw.shreddit.service.StorageService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -43,21 +44,26 @@ public class DocumentFilesController {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String username = auth != null ? auth.getName() : "anonymous";
 
-        // Upload file with user information
-        String objectName = storageService.upload(file, username);
-
-        // Notify OCR worker via RabbitMQ
-        OcrFileRequestDto msg = new OcrFileRequestDto(bucket, objectName, username);
-        rabbitMQService.sendOcrFileRequest(msg);
-
-        // Create a document in the database
-        String effectiveTitle = (title != null && !title.isBlank()) ? title : (file.getOriginalFilename() != null ? file.getOriginalFilename() : objectName);
+        // First create a document record (summary status PENDING)
+        String effectiveTitle = (title != null && !title.isBlank()) ? title : (file.getOriginalFilename() != null ? file.getOriginalFilename() : "uploaded.pdf");
         DocumentDto documentDto = new DocumentDto();
         documentDto.setTitle(effectiveTitle);
-        documentDto.setContent(""); // Will be populated by OCR worker
+        documentDto.setContent("");
         documentDto.setUsername(username);
-        documentDto.setFilename(objectName);
-        DocumentDto createdDoc = documentService.create(documentDto);
+        documentDto.setSummaryStatus("PENDING");
+        DocumentDto createdDoc = documentService.createForUpload(documentDto);
+
+        // Upload file with user information; store original file under its object name
+        String objectName = storageService.upload(file, username);
+
+        // Update the document with the stored filename
+        createdDoc.setFilename(objectName);
+        // Persist the filename update (without triggering OCR)
+        documentService.updateFilename(createdDoc.getId(), objectName);
+
+        // Notify OCR worker via RabbitMQ, include documentId for downstream processing
+        OcrFileRequestDto msg = new OcrFileRequestDto(createdDoc.getId(), bucket, objectName, username);
+        rabbitMQService.sendOcrFileRequest(msg);
 
         // Build a JSON object similar to RootController contract so frontend can res.json()
         Map<String, Object> response = new HashMap<>();
@@ -69,6 +75,19 @@ public class DocumentFilesController {
         response.put("bucket", bucket);
         response.put("uploadedBy", username);
         return ResponseEntity.status(201).body(response);
+    }
+
+    @GetMapping("/api/documents/{id}/summary/download")
+    public ResponseEntity<InputStreamResource> downloadSummary(@PathVariable("id") Long id) {
+        try {
+            // MinIO object path: <docId>/summary.txt in bucket
+            String objectName = "documents/" + id + "/summary.txt";
+            String downloadName = "summary-" + id + ".txt";
+            return storageService.downloadWithName(objectName, downloadName, MediaType.TEXT_PLAIN);
+        } catch (Exception e) {
+            log.error("Error downloading summary for document {}: {}", id, e.getMessage(), e);
+            return ResponseEntity.status(500).build();
+        }
     }
 
     @GetMapping("/documents/download/{name}")

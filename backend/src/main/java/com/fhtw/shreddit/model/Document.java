@@ -32,6 +32,14 @@ public class Document {
     @Column(name = "filename")
     private String filename;
 
+    // LLM summary content stored redundantly in DB for quick access
+    @Column(name = "summary")
+    private String summary;
+
+    // Summary processing status: OK, PENDING, FAILED
+    @Column(name = "summary_status")
+    private String summaryStatus;
+
     public Document() {}
 
     @PrePersist
@@ -87,5 +95,21 @@ public class Document {
 
     public void setFilename(String filename) {
         this.filename = filename;
+    }
+
+    public String getSummary() {
+        return summary;
+    }
+
+    public void setSummary(String summary) {
+        this.summary = summary;
+    }
+
+    public String getSummaryStatus() {
+        return summaryStatus;
+    }
+
+    public void setSummaryStatus(String summaryStatus) {
+        this.summaryStatus = summaryStatus;
     }
 }

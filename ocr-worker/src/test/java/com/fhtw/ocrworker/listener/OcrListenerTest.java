@@ -26,13 +26,18 @@ class OcrListenerTest {
     @Test
     void testOnMessage_Success() throws Exception {
         // Create a test DTO
-        OcrFileRequestDto dto = new OcrFileRequestDto("test-bucket", "test-document.pdf", "test-user");
+        OcrFileRequestDto dto = new OcrFileRequestDto(
+                1L,
+                "test-bucket",
+                "documents/1/input.pdf",
+                "test-user"
+        );
         
         // Call the listener
         ocrListener.onMessage(dto);
         
         // Verify that the service was called with the correct parameters
-        verify(ocrProcessorService).processPdf("test-bucket", "test-document.pdf");
+        verify(ocrProcessorService).processPdf(1L, "test-bucket", "documents/1/input.pdf");
     }
 
     @Test
@@ -47,15 +52,20 @@ class OcrListenerTest {
     @Test
     void testOnMessage_ServiceThrowsException() throws Exception {
         // Create a test DTO
-        OcrFileRequestDto dto = new OcrFileRequestDto("test-bucket", "test-document.pdf", "test-user");
+        OcrFileRequestDto dto = new OcrFileRequestDto(
+                1L,
+                "test-bucket",
+                "documents/1/input.pdf",
+                "test-user"
+        );
         
         // Make the service throw an exception
-        doThrow(new RuntimeException("Test exception")).when(ocrProcessorService).processPdf(anyString(), anyString());
+        doThrow(new RuntimeException("Test exception")).when(ocrProcessorService).processPdf(anyLong(), anyString(), anyString());
         
         // Call the listener - it should catch the exception and not propagate it
         ocrListener.onMessage(dto);
         
         // Verify that the service was called
-        verify(ocrProcessorService).processPdf("test-bucket", "test-document.pdf");
+        verify(ocrProcessorService).processPdf(1L, "test-bucket", "documents/1/input.pdf");
     }
 }

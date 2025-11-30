@@ -2,8 +2,11 @@ package com.fhtw.ocrworker.service;
 
 import io.minio.GetObjectArgs;
 import io.minio.MinioClient;
+import io.minio.PutObjectArgs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -22,12 +25,17 @@ public class OcrProcessorService {
     private static final Logger log = LoggerFactory.getLogger(OcrProcessorService.class);
 
     private final MinioClient minioClient;
+    private final RabbitTemplate rabbitTemplate;
 
-    public OcrProcessorService(MinioClient minioClient) {
+    @Value("${rabbitmq.queue.genai}")
+    private String genAiQueueName;
+
+    public OcrProcessorService(MinioClient minioClient, RabbitTemplate rabbitTemplate) {
         this.minioClient = minioClient;
+        this.rabbitTemplate = rabbitTemplate;
     }
 
-    public void processPdf(String bucket, String objectName) throws Exception {
+    public void processPdf(Long documentId, String bucket, String objectName) throws Exception {
         File workDir = Files.createTempDirectory("ocr-work-").toFile();
         File pdfFile = new File(workDir, "input.pdf");
         try {
@@ -47,8 +55,25 @@ public class OcrProcessorService {
                 combined.append(text).append("\n");
             }
 
-            // 4) Log the combined text
-            log.info("[OCR RESULT] bucket={} object={} text=\n{}", bucket, objectName, combined.toString());
+            // 4) Store OCR text to MinIO under documents/<docId>/ocr.txt
+            String ocrObject = "documents/" + documentId + "/ocr.txt";
+            byte[] bytes = combined.toString().getBytes(StandardCharsets.UTF_8);
+            try (var bais = new java.io.ByteArrayInputStream(bytes)) {
+                minioClient.putObject(
+                        PutObjectArgs.builder()
+                                .bucket(bucket)
+                                .object(ocrObject)
+                                .stream(bais, bytes.length, -1)
+                                .contentType("text/plain; charset=utf-8")
+                                .build()
+                );
+            }
+            log.info("Stored OCR text to MinIO: bucket={} object={}", bucket, ocrObject);
+
+            // 5) Publish GENAI job
+            GenAiRequestDto genMsg = new GenAiRequestDto(documentId, ocrObject);
+            rabbitTemplate.convertAndSend(genAiQueueName, genMsg);
+            log.info("Published GENAI job for documentId={} ocrPath={}", documentId, ocrObject);
         } catch (Exception e) {
             log.error("OCR processing failed for bucket={} object={}", bucket, objectName, e);
             throw e;
@@ -56,6 +81,21 @@ public class OcrProcessorService {
             // Cleanup temp directory
             deleteRecursive(workDir);
         }
+    }
+
+    public static class GenAiRequestDto {
+        private Long documentId;
+        private String ocrPath;
+
+        public GenAiRequestDto() {}
+        public GenAiRequestDto(Long documentId, String ocrPath) {
+            this.documentId = documentId;
+            this.ocrPath = ocrPath;
+        }
+        public Long getDocumentId() { return documentId; }
+        public void setDocumentId(Long documentId) { this.documentId = documentId; }
+        public String getOcrPath() { return ocrPath; }
+        public void setOcrPath(String ocrPath) { this.ocrPath = ocrPath; }
     }
 
     private void downloadFromMinio(String bucket, String objectName, File target) throws Exception {
@@ -129,3 +169,4 @@ public class OcrProcessorService {
         }
     }
 }
+

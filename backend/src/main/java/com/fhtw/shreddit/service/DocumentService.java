@@ -60,8 +60,35 @@ public class DocumentService {
         }
     }
 
+    /**
+     * Create a document entity without triggering an OCR queue message.
+     * Used by file-upload flow where a separate OCR File message will be sent.
+     */
+    public DocumentDto createForUpload(DocumentDto doc) {
+        try {
+            log.info("Creating document (upload flow): {}", doc.getTitle());
+            DocumentEntity entity = toEntity(doc);
+            // Mark summary status as PENDING initially
+            if (entity.getSummaryStatus() == null) {
+                entity.setSummaryStatus("PENDING");
+            }
+            DocumentEntity saved = repository.save(entity);
+            return toDto(saved);
+        } catch (Exception e) {
+            log.error("Error creating document (upload flow): {}", e.getMessage(), e);
+            throw new DocumentCreationException("Failed to create document for upload", e);
+        }
+    }
+
     public void delete(Long id) {
         repository.deleteById(id);
+    }
+
+    public void updateFilename(Long id, String filename) {
+        repository.findById(id).ifPresent(entity -> {
+            entity.setFilename(filename);
+            repository.save(entity);
+        });
     }
 
     private DocumentEntity toEntity(DocumentDto doc) {
@@ -72,6 +99,8 @@ public class DocumentService {
         entity.setCreatedAt(doc.getCreatedAt());
         entity.setUsername(doc.getUsername());
         entity.setFilename(doc.getFilename());
+        entity.setSummary(doc.getSummary());
+        entity.setSummaryStatus(doc.getSummaryStatus());
         return entity;
     }
 
@@ -83,6 +112,8 @@ public class DocumentService {
         doc.setCreatedAt(entity.getCreatedAt());
         doc.setUsername(entity.getUsername());
         doc.setFilename(entity.getFilename());
+        doc.setSummary(entity.getSummary());
+        doc.setSummaryStatus(entity.getSummaryStatus());
         return doc;
     }
 }
