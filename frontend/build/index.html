@@ -365,6 +365,7 @@
             return;
         }
         for (const d of filtered) {
+            console.log('doc', d.id, 'status:', d.summaryStatus, 'summary:', d.summary);
             const li = document.createElement('li');
             const left = document.createElement('div');
             left.className = 'row';
@@ -383,15 +384,6 @@
                 }
             };
 
-            // Add download button
-            const download = document.createElement('button');
-            download.textContent = 'Download';
-            download.onclick = () => {
-                // Use the objectName if available, otherwise use the title
-                const fileName = d.objectName || d.filename || `document-${d.id}.pdf`;
-                window.open(`/documents/download/${fileName}`, '_blank');
-            };
-
             const headerRow = document.createElement('div');
             headerRow.className = 'row space-between';
             headerRow.appendChild(left);
@@ -400,11 +392,10 @@
             const buttonContainer = document.createElement('div');
             buttonContainer.className = 'row';
             buttonContainer.style.gap = '0.5rem';
-
-            // Add download button to the container
-            buttonContainer.appendChild(download);
-            // Add summary button based on status
-            if (d.summaryStatus === 'OK') {
+            // Summary availability: OK status or non-empty summary text
+            const hasSummary = d && (d.summaryStatus === 'OK' || (typeof d.summary === 'string' && d.summary.trim().length > 0));
+            // Add summary button based on status/availability
+            if (hasSummary) {
                 const dlSummary = document.createElement('button');
                 dlSummary.textContent = 'Download Summary';
                 dlSummary.onclick = () => handleDownloadSummary(d.id);

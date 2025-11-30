@@ -8,7 +8,10 @@ import com.fhtw.shreddit.service.StorageService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
@@ -78,15 +81,27 @@ public class DocumentFilesController {
     }
 
     @GetMapping("/api/documents/{id}/summary/download")
-    public ResponseEntity<InputStreamResource> downloadSummary(@PathVariable("id") Long id) {
+    public ResponseEntity<?> downloadSummary(@PathVariable("id") Long id) {
         try {
-            // MinIO object path: <docId>/summary.txt in bucket
-            String objectName = "documents/" + id + "/summary.txt";
-            String downloadName = "summary-" + id + ".txt";
-            return storageService.downloadWithName(objectName, downloadName, MediaType.TEXT_PLAIN);
-        } catch (Exception e) {
-            log.error("Error downloading summary for document {}: {}", id, e.getMessage(), e);
-            return ResponseEntity.status(500).build();
+            // Prefer DB content to avoid MinIO dependency for summary download
+            return documentService.getById(id)
+                    .map(doc -> {
+                        String summary = doc.getSummary();
+                        if (summary == null || summary.isBlank()) {
+                            return ResponseEntity.status(404).body("No summary available");
+                        }
+                        byte[] bytes = summary.getBytes(java.nio.charset.StandardCharsets.UTF_8);
+                        ByteArrayResource resource = new ByteArrayResource(bytes);
+                        return ResponseEntity.ok()
+                                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"summary-" + id + ".txt\"")
+                                .contentType(MediaType.TEXT_PLAIN)
+                                .contentLength(bytes.length)
+                                .body(resource);
+                    })
+                    .orElseGet(() -> ResponseEntity.status(404).body("Document not found"));
+        } catch (Exception ex) {
+            log.error("Error while downloading summary for doc {}", id, ex);
+            return ResponseEntity.internalServerError().body("Error downloading summary");
         }
     }
 
