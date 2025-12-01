@@ -11,7 +11,7 @@ services:
       minio:
         condition: service_started
     env_file:
-      - env
+      - .env
     environment:
       SPRING_PROFILES_ACTIVE: docker
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/shreddit
@@ -33,7 +33,7 @@ services:
       minio:
         condition: service_started
     env_file:
-      - env
+      - .env
     environment:
       # RabbitMQ
       SPRING_RABBITMQ_HOST: rabbitmq
@@ -61,7 +61,7 @@ services:
       db:
         condition: service_healthy
     env_file:
-      - env
+      - .env
     environment:
       # RabbitMQ
       SPRING_RABBITMQ_HOST: rabbitmq
