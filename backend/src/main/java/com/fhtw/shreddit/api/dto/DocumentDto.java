@@ -20,6 +20,7 @@ public class DocumentDto {
     private String filename;
     private String summary;
     private String summaryStatus;
+    private String ocrText;
 
     public DocumentDto() {}
     @JsonCreator
@@ -99,5 +100,13 @@ public class DocumentDto {
 
     public void setSummaryStatus(String summaryStatus) {
         this.summaryStatus = summaryStatus;
+    }
+
+    public String getOcrText() {
+        return ocrText;
+    }
+
+    public void setOcrText(String ocrText) {
+        this.ocrText = ocrText;
     }
 }

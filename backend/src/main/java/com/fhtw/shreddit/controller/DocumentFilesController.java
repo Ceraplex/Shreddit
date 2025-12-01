@@ -9,7 +9,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.ByteArrayResource;
-import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
@@ -19,7 +18,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -47,37 +45,55 @@ public class DocumentFilesController {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String username = auth != null ? auth.getName() : "anonymous";
 
-        // First create a document record (summary status PENDING)
-        String effectiveTitle = (title != null && !title.isBlank()) ? title : (file.getOriginalFilename() != null ? file.getOriginalFilename() : "uploaded.pdf");
-        DocumentDto documentDto = new DocumentDto();
-        documentDto.setTitle(effectiveTitle);
-        documentDto.setContent("");
-        documentDto.setUsername(username);
-        documentDto.setSummaryStatus("PENDING");
-        DocumentDto createdDoc = documentService.createForUpload(documentDto);
+        if (file == null || file.isEmpty()) {
+            log.warn("Upload attempt with empty file by user '{}'", username);
+            Map<String, Object> error = new HashMap<>();
+            error.put("error", "File is required");
+            return ResponseEntity.badRequest().body(error);
+        }
 
-        // Upload file with user information; store original file under its object name
-        String objectName = storageService.upload(file, username);
+        try {
+            // First create a document record (summary status PENDING)
+            String effectiveTitle = (title != null && !title.isBlank())
+                    ? title
+                    : (file.getOriginalFilename() != null ? file.getOriginalFilename() : "uploaded.pdf");
+            DocumentDto documentDto = new DocumentDto();
+            documentDto.setTitle(effectiveTitle);
+            documentDto.setContent("");
+            documentDto.setUsername(username);
+            documentDto.setSummaryStatus("PENDING");
+            DocumentDto createdDoc = documentService.createForUpload(documentDto);
 
-        // Update the document with the stored filename
-        createdDoc.setFilename(objectName);
-        // Persist the filename update (without triggering OCR)
-        documentService.updateFilename(createdDoc.getId(), objectName);
+            // Upload file with user information; store original file under its object name
+            String objectName = storageService.upload(file, username);
 
-        // Notify OCR worker via RabbitMQ, include documentId for downstream processing
-        OcrFileRequestDto msg = new OcrFileRequestDto(createdDoc.getId(), bucket, objectName, username);
-        rabbitMQService.sendOcrFileRequest(msg);
+            // Update the document with the stored filename
+            createdDoc.setFilename(objectName);
+            // Persist the filename update (without triggering OCR)
+            documentService.updateFilename(createdDoc.getId(), objectName);
 
-        // Build a JSON object similar to RootController contract so frontend can res.json()
-        Map<String, Object> response = new HashMap<>();
-        response.put("id", createdDoc.getId());
-        response.put("title", createdDoc.getTitle());
-        response.put("createdAt", createdDoc.getCreatedAt().toString());
-        response.put("filename", objectName);
-        response.put("objectName", objectName);
-        response.put("bucket", bucket);
-        response.put("uploadedBy", username);
-        return ResponseEntity.status(201).body(response);
+            // Notify OCR worker via RabbitMQ, include documentId for downstream processing
+            OcrFileRequestDto msg = new OcrFileRequestDto(createdDoc.getId(), bucket, objectName, username);
+            rabbitMQService.sendOcrFileRequest(msg);
+            log.info("Document upload queued for OCR+GenAI: docId={}, object={}", createdDoc.getId(), objectName);
+
+            // Build a JSON object similar to RootController contract so frontend can res.json()
+            Map<String, Object> response = new HashMap<>();
+            response.put("id", createdDoc.getId());
+            response.put("title", createdDoc.getTitle());
+            response.put("createdAt", createdDoc.getCreatedAt().toString());
+            response.put("filename", objectName);
+            response.put("objectName", objectName);
+            response.put("bucket", bucket);
+            response.put("uploadedBy", username);
+            return ResponseEntity.status(201).body(response);
+        } catch (Exception ex) {
+            log.error("Failed to upload and queue document for user '{}': {}", username, ex.getMessage(), ex);
+            Map<String, Object> error = new HashMap<>();
+            error.put("error", "Upload failed");
+            error.put("message", ex.getMessage());
+            return ResponseEntity.internalServerError().body(error);
+        }
     }
 
     @GetMapping("/api/documents/{id}/summary/download")

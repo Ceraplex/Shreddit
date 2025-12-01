@@ -33,12 +33,16 @@ public class Document {
     private String filename;
 
     // LLM summary content stored redundantly in DB for quick access
-    @Column(name = "summary")
+    @Column(name = "summary", columnDefinition = "TEXT")
     private String summary;
 
     // Summary processing status: OK, PENDING, FAILED
     @Column(name = "summary_status")
     private String summaryStatus;
+
+    // Raw OCR text stored for reference/debugging
+    @Column(name = "ocr_text", columnDefinition = "TEXT")
+    private String ocrText;
 
     public Document() {}
 
@@ -111,5 +115,13 @@ public class Document {
 
     public void setSummaryStatus(String summaryStatus) {
         this.summaryStatus = summaryStatus;
+    }
+
+    public String getOcrText() {
+        return ocrText;
+    }
+
+    public void setOcrText(String ocrText) {
+        this.ocrText = ocrText;
     }
 }

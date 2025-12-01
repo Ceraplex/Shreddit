@@ -41,31 +41,37 @@ public class GenAiListener {
         }
         Long docId = request.getDocumentId();
         String ocrPath = request.getOcrPath();
-        log.info("GENAI: job received for docId={}", docId);
+        if (docId == null || ocrPath == null || ocrPath.isBlank()) {
+            log.warn("GENAI: received malformed message: docId={}, ocrPath={}", docId, ocrPath);
+            return;
+        }
+        log.info("GENAI: job received for docId={} object={}", docId, ocrPath);
 
         try {
-            // Load OCR text from MinIO
             String ocrText;
             log.info("GENAI: loading OCR from MinIO bucket='{}' object='{}' for docId={}", bucket, ocrPath, docId);
             try (InputStream in = minioClient.getObject(
                     GetObjectArgs.builder().bucket(bucket).object(ocrPath).build())) {
                 ocrText = new String(in.readAllBytes(), StandardCharsets.UTF_8);
             }
-            log.info("GENAI: OCR text loaded from MinIO for docId={}", docId);
+            if (ocrText.isBlank()) {
+                throw new IllegalStateException("OCR text is empty for docId=" + docId);
+            }
+            log.info("GENAI: OCR text loaded from MinIO ({} chars) for docId={}", ocrText.length(), docId);
 
-            // Call Gemini with retry (1 retry for transient errors)
             String summary;
             try {
                 log.info("GENAI: calling Gemini for docId={}", docId);
                 summary = geminiClient.summarizeGerman(ocrText);
             } catch (Exception first) {
-                log.warn("GENAI: Gemini call failed once for docId={}: {} — retrying once", docId, first.getMessage());
-                // retry once
+                log.warn("GENAI: Gemini call failed once for docId={}, retrying. Error: {}", docId, first.getMessage());
                 summary = geminiClient.summarizeGerman(ocrText);
             }
-            log.info("GENAI: Gemini summary length={} for docId={}", summary != null ? summary.length() : -1, docId);
+            if (summary == null || summary.isBlank()) {
+                throw new IllegalStateException("Gemini returned an empty summary for docId=" + docId);
+            }
+            log.info("GENAI: Gemini summary length={} for docId={}", summary.length(), docId);
 
-            // Store summary to MinIO
             String summaryObject = "documents/" + docId + "/summary.txt";
             byte[] bytes = summary.getBytes(StandardCharsets.UTF_8);
             minioClient.putObject(
@@ -76,20 +82,21 @@ public class GenAiListener {
                             .contentType("text/plain; charset=utf-8")
                             .build()
             );
+            log.info("GENAI: summary stored in MinIO object='{}' for docId={}", summaryObject, docId);
 
-            // Update DB (must exist)
-            log.info("GENAI: writing summary + status=OK to DB for docId={}", docId);
             DocumentEntity entity = documentRepository.findById(docId)
-                    .orElseThrow(() -> new RuntimeException("Document not found: " + docId));
+                    .orElseThrow(() -> new IllegalStateException("Document not found: " + docId));
+            entity.setOcrText(ocrText);
             entity.setSummary(summary);
             entity.setSummaryStatus("OK");
             documentRepository.save(entity);
 
             log.info("GENAI: summary stored in DB and MinIO for docId={}", docId);
         } catch (Exception e) {
-            log.error("GENAI: error while processing docId={}", docId, e);
+            log.error("GENAI: error while processing docId={}: {}", docId, e.getMessage(), e);
             try {
                 documentRepository.findById(docId).ifPresent(entity -> {
+                    entity.setSummary(null);
                     entity.setSummaryStatus("FAILED");
                     documentRepository.save(entity);
                 });
@@ -99,3 +106,4 @@ public class GenAiListener {
         }
     }
 }
+

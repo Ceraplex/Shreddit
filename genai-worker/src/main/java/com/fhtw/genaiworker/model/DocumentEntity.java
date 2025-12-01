@@ -9,11 +9,14 @@ public class DocumentEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "summary")
+    @Column(name = "summary", columnDefinition = "TEXT")
     private String summary;
 
     @Column(name = "summary_status")
     private String summaryStatus;
+
+    @Column(name = "ocr_text", columnDefinition = "TEXT")
+    private String ocrText;
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -21,4 +24,6 @@ public class DocumentEntity {
     public void setSummary(String summary) { this.summary = summary; }
     public String getSummaryStatus() { return summaryStatus; }
     public void setSummaryStatus(String summaryStatus) { this.summaryStatus = summaryStatus; }
+    public String getOcrText() { return ocrText; }
+    public void setOcrText(String ocrText) { this.ocrText = ocrText; }
 }
