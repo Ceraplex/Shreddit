@@ -398,7 +398,7 @@
             if (hasSummary) {
                 const dlSummary = document.createElement('button');
                 dlSummary.textContent = 'Download Summary';
-                dlSummary.onclick = () => handleDownloadSummary(d.id);
+                dlSummary.onclick = () => handleDownloadSummary(d.id, d.summary);
                 buttonContainer.appendChild(dlSummary);
             } else if (d.summaryStatus === 'PENDING') {
                 const dlSummaryPending = document.createElement('button');
@@ -430,8 +430,9 @@
                         } else {
                             const doc = await res.json();
                             const hasSummary = doc.summaryStatus === 'OK';
+                            const summaryBtnId = `dl-summary-${doc.id}`;
                             const summaryBlock = hasSummary
-                                ? `<div><strong>Summary:</strong><br><pre style="white-space:pre-wrap">${escapeHtml(doc.summary || '')}</pre></div>`
+                                ? `<div><strong>Summary:</strong><br><pre style="white-space:pre-wrap">${escapeHtml(doc.summary || '')}</pre><div class="row" style="margin-top:.5rem;"><button id="${summaryBtnId}" data-id="${doc.id}">Download summary</button></div></div>`
                                 : `<div class="muted"><strong>Summary:</strong> ${escapeHtml(doc.summaryStatus || 'PENDING')}</div>`;
                             details.innerHTML = `
                 <div><strong>Title:</strong> ${escapeHtml(doc.title || '(untitled)')}</div>
@@ -440,6 +441,10 @@
                 ${summaryBlock}
               `;
                             details.dataset.loaded = 'true';
+                            const dlBtn = details.querySelector(`#${summaryBtnId}`);
+                            if (dlBtn) {
+                                dlBtn.addEventListener('click', () => handleDownloadSummary(doc.id, doc.summary));
+                            }
                         }
                     } catch (e) {
                         console.error(e);
@@ -468,8 +473,20 @@
         return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]));
     }
 
-    async function handleDownloadSummary(documentId) {
+    async function handleDownloadSummary(documentId, inlineSummary) {
         try {
+            if (inlineSummary && inlineSummary.trim().length > 0) {
+                const blobInline = new Blob([inlineSummary], { type: 'text/plain;charset=utf-8' });
+                const urlInline = window.URL.createObjectURL(blobInline);
+                const aInline = document.createElement('a');
+                aInline.href = urlInline;
+                aInline.download = `summary-${documentId}.txt`;
+                document.body.appendChild(aInline);
+                aInline.click();
+                aInline.remove();
+                window.URL.revokeObjectURL(urlInline);
+                return;
+            }
             const resp = await apiFetch(`/api/documents/${documentId}/summary/download`, { method: 'GET' });
             if (!resp.ok) {
                 console.error('Failed to download summary', resp.status);

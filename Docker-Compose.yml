@@ -10,6 +10,8 @@ services:
         condition: service_healthy
       minio:
         condition: service_started
+    env_file:
+      - env
     environment:
       SPRING_PROFILES_ACTIVE: docker
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/shreddit
@@ -30,6 +32,8 @@ services:
         condition: service_healthy
       minio:
         condition: service_started
+    env_file:
+      - env
     environment:
       # RabbitMQ
       SPRING_RABBITMQ_HOST: rabbitmq
@@ -56,6 +60,8 @@ services:
         condition: service_started
       db:
         condition: service_healthy
+    env_file:
+      - env
     environment:
       # RabbitMQ
       SPRING_RABBITMQ_HOST: rabbitmq
@@ -73,10 +79,6 @@ services:
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: postgres
       # Gemini
-      GEMINI_API_KEY: ${GEMINI_API_KEY}
-      GEMINI_MODEL: gemini-2.0-flash
-      GEMINI_TEMPERATURE: 0.2
-      GEMINI_MAX_TOKENS: 512
     restart: unless-stopped
 
   db:
