@@ -1,5 +1,6 @@
 package com.fhtw.ocrworker.service;
 
+import com.fhtw.ocrworker.dto.IndexingRequestDto;
 import io.minio.GetObjectArgs;
 import io.minio.MinioClient;
 import io.minio.PutObjectArgs;
@@ -29,6 +30,9 @@ public class OcrProcessorService {
 
     @Value("${rabbitmq.queue.genai}")
     private String genAiQueueName;
+
+    @Value("${rabbitmq.queue.indexing}")
+    private String indexingQueueName;
 
     public OcrProcessorService(MinioClient minioClient, RabbitTemplate rabbitTemplate) {
         this.minioClient = minioClient;
@@ -70,7 +74,17 @@ public class OcrProcessorService {
             }
             log.info("Stored OCR text to MinIO: bucket={} object={}", bucket, ocrObject);
 
-            // 5) Publish GENAI job
+            // 5) Publish INDEXING job for search
+            try {
+                IndexingRequestDto indexMsg = new IndexingRequestDto(documentId, bucket, ocrObject);
+                rabbitTemplate.convertAndSend(indexingQueueName, indexMsg);
+                log.info("Published INDEX job for documentId={} ocrPath={}", documentId, ocrObject);
+            } catch (Exception publishEx) {
+                // Don't fail the whole OCR/summary pipeline if search indexing is temporarily unavailable
+                log.warn("Failed to publish INDEX job for docId={} (continuing): {}", documentId, publishEx.getMessage());
+            }
+
+            // 6) Publish GENAI job
             GenAiRequestDto genMsg = new GenAiRequestDto(documentId, ocrObject);
             rabbitTemplate.convertAndSend(genAiQueueName, genMsg);
             log.info("Published GENAI job for documentId={} ocrPath={}", documentId, ocrObject);
@@ -169,4 +183,3 @@ public class OcrProcessorService {
         }
     }
 }
-

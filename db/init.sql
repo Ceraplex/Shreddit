@@ -34,6 +34,16 @@ BEGIN
     END IF;
 END $$;
 
+-- Notes attached to documents
+CREATE TABLE IF NOT EXISTS public.document_note (
+    id BIGSERIAL PRIMARY KEY,
+    document_id BIGINT NOT NULL REFERENCES public.document_entity(id) ON DELETE CASCADE,
+    author TEXT,
+    content TEXT NOT NULL,
+    created_at TIMESTAMP NULL
+);
+CREATE INDEX IF NOT EXISTS idx_document_note_document_id ON public.document_note(document_id);
+
 -- Users table for authentication
 CREATE TABLE IF NOT EXISTS public.user_entity (
     id BIGSERIAL PRIMARY KEY,

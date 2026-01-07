@@ -35,6 +35,7 @@ public class SecurityConfig {
                         .requestMatchers("/auth/**", "/api/auth/**", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/error").permitAll()
                         .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/documents/download/**").permitAll()
+                        .requestMatchers("/search/**", "/api/search/**").authenticated()
                         .requestMatchers("/documents/**").authenticated()
                         .anyRequest().permitAll()
                 )

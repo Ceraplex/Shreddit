@@ -1,6 +1,7 @@
 package com.fhtw.genaiworker.listener;
 
 import com.fhtw.genaiworker.dto.GenAiRequestDto;
+import com.fhtw.genaiworker.dto.IndexingRequestDto;
 import com.fhtw.genaiworker.model.DocumentEntity;
 import com.fhtw.genaiworker.repo.DocumentRepository;
 import com.fhtw.genaiworker.service.GeminiClient;
@@ -10,7 +11,9 @@ import io.minio.PutObjectArgs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.stereotype.Component;
 
 import java.io.InputStream;
@@ -23,14 +26,19 @@ public class GenAiListener {
     private final MinioClient minioClient;
     private final GeminiClient geminiClient;
     private final DocumentRepository documentRepository;
+    private final RabbitTemplate rabbitTemplate;
 
     @Value("${MINIO_BUCKET:documents}")
     private String bucket;
 
-    public GenAiListener(MinioClient minioClient, GeminiClient geminiClient, DocumentRepository documentRepository) {
+    @Value("${rabbitmq.queue.indexing}")
+    private String indexingQueue;
+
+    public GenAiListener(MinioClient minioClient, GeminiClient geminiClient, DocumentRepository documentRepository, RabbitTemplate rabbitTemplate) {
         this.minioClient = minioClient;
         this.geminiClient = geminiClient;
         this.documentRepository = documentRepository;
+        this.rabbitTemplate = rabbitTemplate;
     }
 
     @RabbitListener(queues = "${rabbitmq.queue.genai}")
@@ -91,19 +99,34 @@ public class GenAiListener {
             entity.setSummaryStatus("OK");
             documentRepository.save(entity);
 
+            // Also update Elasticsearch so search has the summary
+            try {
+                IndexingRequestDto indexMsg = new IndexingRequestDto(docId, bucket, ocrPath);
+                rabbitTemplate.convertAndSend(indexingQueue, indexMsg);
+                log.info("GENAI: published INDEX job for docId={} ocrPath={}", docId, ocrPath);
+            } catch (Exception publishEx) {
+                log.warn("GENAI: failed to publish INDEX job for docId={} (continuing): {}", docId, publishEx.getMessage());
+            }
+
             log.info("GENAI: summary stored in DB and MinIO for docId={}", docId);
+        } catch (HttpClientErrorException.TooManyRequests e) {
+            log.error("GENAI: quota exceeded for docId={}: {}", docId, e.getMessage());
+            markFailed(docId, "FAILED_QUOTA", "Gemini quota exceeded; try again later");
         } catch (Exception e) {
             log.error("GENAI: error while processing docId={}: {}", docId, e.getMessage(), e);
-            try {
-                documentRepository.findById(docId).ifPresent(entity -> {
-                    entity.setSummary(null);
-                    entity.setSummaryStatus("FAILED");
-                    documentRepository.save(entity);
-                });
-            } catch (Exception dbEx) {
-                log.error("GENAI: failed to mark summary_status=FAILED for docId={}", docId, dbEx);
-            }
+            markFailed(docId, "FAILED", null);
+        }
+    }
+
+    private void markFailed(Long docId, String status, String summaryMessage) {
+        try {
+            documentRepository.findById(docId).ifPresent(entity -> {
+                entity.setSummary(summaryMessage);
+                entity.setSummaryStatus(status != null ? status : "FAILED");
+                documentRepository.save(entity);
+            });
+        } catch (Exception dbEx) {
+            log.error("GENAI: failed to mark summary_status={} for docId={}", status, docId, dbEx);
         }
     }
 }
-

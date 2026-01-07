@@ -10,6 +10,8 @@ services:
         condition: service_healthy
       minio:
         condition: service_started
+      elasticsearch:
+        condition: service_started
     env_file:
       - .env
     environment:
@@ -21,6 +23,7 @@ services:
       MINIO_ACCESS_KEY: minioadmin
       MINIO_SECRET_KEY: minioadmin
       MINIO_BUCKET: documents
+      ELASTICSEARCH_URL: http://elasticsearch:9200
     ports:
       - "8080:8080"
 
@@ -42,6 +45,7 @@ services:
       SPRING_RABBITMQ_PASSWORD: guest
       RABBITMQ_QUEUE_OCR: ocr-queue
       RABBITMQ_QUEUE_GENAI: genai-queue
+      RABBITMQ_QUEUE_INDEXING: indexing-queue
       # MinIO
       MINIO_ENDPOINT: http://minio:9000
       MINIO_ACCESS_KEY: minioadmin
@@ -60,6 +64,8 @@ services:
         condition: service_started
       db:
         condition: service_healthy
+      elasticsearch:
+        condition: service_started
     env_file:
       - .env
     environment:
@@ -69,6 +75,7 @@ services:
       SPRING_RABBITMQ_USERNAME: guest
       SPRING_RABBITMQ_PASSWORD: guest
       RABBITMQ_QUEUE_GENAI: genai-queue
+      RABBITMQ_QUEUE_INDEXING: indexing-queue
       # MinIO
       MINIO_ENDPOINT: http://minio:9000
       MINIO_ACCESS_KEY: minioadmin
@@ -79,6 +86,36 @@ services:
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: postgres
       # Gemini
+    restart: unless-stopped
+
+  indexing-worker:
+    build: ./indexing-worker
+    container_name: shreddit_indexing_worker
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      minio:
+        condition: service_started
+      db:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_started
+    env_file:
+      - .env
+    environment:
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: guest
+      SPRING_RABBITMQ_PASSWORD: guest
+      RABBITMQ_QUEUE_INDEXING: indexing-queue
+      MINIO_ENDPOINT: http://minio:9000
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin
+      MINIO_BUCKET: documents
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/shreddit
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      ELASTICSEARCH_URL: http://elasticsearch:9200
     restart: unless-stopped
 
   db:
@@ -141,7 +178,20 @@ services:
     volumes:
       - minio-data:/data
 
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.15.0
+    container_name: shreddit_elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+    ports:
+      - "9200:9200"
+    volumes:
+      - esdata:/usr/share/elasticsearch/data
+
 volumes:
   pgdata:
   rabbitmq_data:
   minio-data:
+  esdata:
