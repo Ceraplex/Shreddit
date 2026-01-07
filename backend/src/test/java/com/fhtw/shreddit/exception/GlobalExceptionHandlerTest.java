@@ -37,6 +37,19 @@ class GlobalExceptionHandlerTest {
     }
 
     @Test
+    void handleDocumentException() {
+        DocumentException ex = new DocumentException("doc error");
+        ResponseEntity<ErrorResponse> response = handler.handleDocumentException(ex);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        ErrorResponse errorResponse = response.getBody();
+        assertNotNull(errorResponse);
+        assertEquals(HttpStatus.BAD_REQUEST.value(), errorResponse.getStatus());
+        assertEquals("Document error", errorResponse.getMessage());
+        assertEquals("doc error", errorResponse.getDetails());
+    }
+
+    @Test
     void handleGenericException() {
         Exception ex = new RuntimeException("test generic error");
         ResponseEntity<ErrorResponse> response = handler.handleGenericException(ex);

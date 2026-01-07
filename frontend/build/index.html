@@ -196,7 +196,10 @@
     <section class="card" id="listCard" style="display:none;">
         <div class="toolbar">
             <input id="search" placeholder="Filter by title..." />
+            <input id="searchFull" placeholder="Full-text search (title/ocr/summary)" />
+            <button id="searchFullBtn" type="button">Search text</button>
             <button id="refresh">Refresh</button>
+            <span id="searchStatus" class="muted"></span>
         </div>
         <ul id="list"></ul>
     </section>
@@ -328,6 +331,9 @@
     // Documents/dashboard (same as before)
     const listEl = document.getElementById('list');
     const searchEl = document.getElementById('search');
+    const searchFullEl = document.getElementById('searchFull');
+    const searchFullBtn = document.getElementById('searchFullBtn');
+    const searchStatus = document.getElementById('searchStatus');
     const refreshBtn = document.getElementById('refresh');
     const form = document.getElementById('uploadForm');
     const titleInput = document.getElementById('title');
@@ -508,7 +514,35 @@
         }
     }
 
+    async function runFullTextSearch() {
+        if (!isLoggedIn()) return;
+        const q = searchFullEl?.value.trim() || '';
+        if (searchStatus) searchStatus.textContent = '';
+        if (!q) {
+            await load();
+            return;
+        }
+        if (searchStatus) searchStatus.textContent = 'Searching...';
+        try {
+            const res = await apiFetch(`/api/search?q=${encodeURIComponent(q)}`);
+            if (!res.ok) throw new Error(`Search failed (${res.status})`);
+            docs = await res.json();
+            render();
+            if (searchStatus) searchStatus.textContent = `Found ${docs.length} result(s) for "${q}"`;
+        } catch (e) {
+            console.error(e);
+            if (searchStatus) searchStatus.textContent = 'Search failed';
+        }
+    }
+
     searchEl?.addEventListener('input', render);
+    searchFullBtn?.addEventListener('click', async (e) => { e.preventDefault(); await runFullTextSearch(); });
+    searchFullEl?.addEventListener('keydown', async (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            await runFullTextSearch();
+        }
+    });
     refreshBtn?.addEventListener('click', load);
 
     const formEl = document.getElementById('uploadForm');

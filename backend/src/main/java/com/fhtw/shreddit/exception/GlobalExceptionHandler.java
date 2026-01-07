@@ -22,6 +22,17 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
+    @ExceptionHandler(DocumentException.class)
+    public ResponseEntity<ErrorResponse> handleDocumentException(DocumentException ex) {
+        log.warn("Document error: {}", ex.getMessage());
+        ErrorResponse error = new ErrorResponse(
+                HttpStatus.BAD_REQUEST.value(),
+                "Document error",
+                ex.getMessage()
+        );
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    }
+
     @ExceptionHandler(MessagePublishException.class)
     public ResponseEntity<ErrorResponse> handleMessagePublishException(MessagePublishException ex) {
         log.error("Message publishing error: {}", ex.getMessage(), ex);

@@ -20,6 +20,9 @@ public class RabbitConfig {
     @Value("${rabbitmq.queue.genai}")
     private String genAiQueueName;
 
+    @Value("${rabbitmq.queue.indexing}")
+    private String indexingQueueName;
+
     @Bean
     public Queue ocrQueue() {
         return new Queue(ocrQueueName, true);
@@ -28,6 +31,11 @@ public class RabbitConfig {
     @Bean
     public Queue genAiQueue() {
         return new Queue(genAiQueueName, true);
+    }
+
+    @Bean
+    public Queue indexingQueue() {
+        return new Queue(indexingQueueName, true);
     }
 
     @Bean

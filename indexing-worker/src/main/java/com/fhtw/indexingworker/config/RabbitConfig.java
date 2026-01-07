@@ -1,4 +1,4 @@
-package com.fhtw.genaiworker.config;
+package com.fhtw.indexingworker.config;
 
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.annotation.EnableRabbit;
@@ -14,16 +14,8 @@ import org.springframework.context.annotation.Configuration;
 @EnableRabbit
 public class RabbitConfig {
 
-    @Value("${rabbitmq.queue.genai}")
-    private String genaiQueue;
-
     @Value("${rabbitmq.queue.indexing}")
     private String indexingQueue;
-
-    @Bean
-    public Queue genaiQueue() {
-        return new Queue(genaiQueue, true);
-    }
 
     @Bean
     public Queue indexingQueue() {
@@ -31,14 +23,14 @@ public class RabbitConfig {
     }
 
     @Bean
-    public MessageConverter jsonMessageConverter() {
+    public MessageConverter messageConverter() {
         return new Jackson2JsonMessageConverter();
     }
 
     @Bean
     public RabbitTemplate rabbitTemplate(ConnectionFactory connectionFactory) {
         RabbitTemplate template = new RabbitTemplate(connectionFactory);
-        template.setMessageConverter(jsonMessageConverter());
+        template.setMessageConverter(messageConverter());
         return template;
     }
 }
