@@ -38,7 +38,7 @@ public class DocumentFilesController {
         this.documentService = documentService;
     }
 
-    @PostMapping(value = "/documents/upload")
+    @PostMapping(value = {"/documents/upload", "/api/documents/upload"})
     public ResponseEntity<Map<String, Object>> upload(@RequestParam("file") MultipartFile file,
                                                       @RequestParam(value = "title", required = false) String title) {
         // Get current authenticated user
