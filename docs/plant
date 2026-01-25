@@ -1,0 +1,51 @@
+@startuml
+title Shreddit System Architecture
+skinparam componentStyle rectangle
+
+actor "User" as user
+
+component "Frontend (NGINX)" as frontend
+component "Backend (Spring Boot)" as backend
+database "PostgreSQL" as db
+component "RabbitMQ" as rabbitmq
+component "MinIO" as minio
+component "Elasticsearch" as elasticsearch
+
+component "OCR Worker" as ocr_worker
+component "GenAI Worker" as genai_worker
+component "Indexing Worker" as indexing_worker
+component "XML Import Worker" as xml_import_worker
+component "Access Log Worker" as access_log_worker
+
+queue "ocr-queue" as ocr_queue
+queue "genai-queue" as genai_queue
+queue "indexing-queue" as indexing_queue
+
+user --> frontend : uses
+frontend --> backend : API calls
+
+backend --> db : reads/writes
+backend --> minio : store/retrieve files
+backend --> rabbitmq : publish jobs
+backend --> elasticsearch : search
+
+rabbitmq --> ocr_queue
+rabbitmq --> genai_queue
+rabbitmq --> indexing_queue
+
+ocr_worker --> ocr_queue : consumes
+ocr_worker --> minio : reads files
+ocr_worker --> rabbitmq : publishes -> genai-queue
+
+genai_worker --> genai_queue : consumes
+genai_worker --> db : updates summaries
+genai_worker --> rabbitmq : publishes -> indexing-queue
+
+indexing_worker --> indexing_queue : consumes
+indexing_worker --> db : reads documents
+indexing_worker --> elasticsearch : indexes documents
+
+xml_import_worker --> db : imports documents
+access_log_worker --> db : logs access
+
+@enduml
