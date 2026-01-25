@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document>
+    <filename>test-xml-import.pdf</filename>
+    <title>XML Import Test Document</title>
+    <datum>2026-01-25</datum>
+    <tags>
+        <tag>test</tag>
+        <tag>xml-import</tag>
+    </tags>
+    <username>xml-import</username>
+    <summary>Testeintrag aus test.xml für den XML-Import.</summary>
+    <content>Dieser Inhalt sollte direkt in der DB landen, ohne OCR.</content>
+</document>
