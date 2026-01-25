@@ -1,0 +1,11 @@
+com\fhtw\accesslogworker\model\AccessLogBatch.class
+com\fhtw\accesslogworker\repo\DocumentRepository.class
+com\fhtw\accesslogworker\service\AccessLogScheduler.class
+com\fhtw\accesslogworker\repo\DocumentAccessDailyRepository.class
+com\fhtw\accesslogworker\model\DocumentEntity.class
+com\fhtw\accesslogworker\config\AccessLogProperties.class
+com\fhtw\accesslogworker\service\AccessLogXmlParser.class
+com\fhtw\accesslogworker\model\DocumentAccessDaily.class
+com\fhtw\accesslogworker\AccessLogWorkerApplication.class
+com\fhtw\accesslogworker\model\AccessLogEntry.class
+com\fhtw\accesslogworker\service\AccessLogProcessor.class

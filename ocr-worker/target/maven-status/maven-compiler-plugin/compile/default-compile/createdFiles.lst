@@ -1,0 +1,8 @@
+com\fhtw\ocrworker\service\OcrProcessorService.class
+com\fhtw\ocrworker\controller\HealthController.class
+com\fhtw\ocrworker\service\OcrProcessorService$GenAiRequestDto.class
+com\fhtw\ocrworker\config\MinioConfig.class
+com\fhtw\ocrworker\dto\OcrFileRequestDto.class
+com\fhtw\ocrworker\config\RabbitConfig.class
+com\fhtw\ocrworker\OcrWorkerApplication.class
+com\fhtw\ocrworker\listener\OcrListener.class

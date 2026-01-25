@@ -1,0 +1,8 @@
+D:\FHTW\Semester_5\SWEN3\Shreddit\genai-worker\src\main\java\com\fhtw\genaiworker\config\MinioConfig.java
+D:\FHTW\Semester_5\SWEN3\Shreddit\genai-worker\src\main\java\com\fhtw\genaiworker\config\RabbitConfig.java
+D:\FHTW\Semester_5\SWEN3\Shreddit\genai-worker\src\main\java\com\fhtw\genaiworker\dto\GenAiRequestDto.java
+D:\FHTW\Semester_5\SWEN3\Shreddit\genai-worker\src\main\java\com\fhtw\genaiworker\GenAiWorkerApplication.java
+D:\FHTW\Semester_5\SWEN3\Shreddit\genai-worker\src\main\java\com\fhtw\genaiworker\listener\GenAiListener.java
+D:\FHTW\Semester_5\SWEN3\Shreddit\genai-worker\src\main\java\com\fhtw\genaiworker\model\DocumentEntity.java
+D:\FHTW\Semester_5\SWEN3\Shreddit\genai-worker\src\main\java\com\fhtw\genaiworker\repo\DocumentRepository.java
+D:\FHTW\Semester_5\SWEN3\Shreddit\genai-worker\src\main\java\com\fhtw\genaiworker\service\GeminiClient.java
