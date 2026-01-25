@@ -1,3 +1,5 @@
+D:\FHTW\Semester_5\SWEN3\Shreddit\backend\src\main\java\com\fhtw\shreddit\api\dto\CommentDto.java
+D:\FHTW\Semester_5\SWEN3\Shreddit\backend\src\main\java\com\fhtw\shreddit\api\dto\CreateCommentRequest.java
 D:\FHTW\Semester_5\SWEN3\Shreddit\backend\src\main\java\com\fhtw\shreddit\api\dto\DocumentDto.java
 D:\FHTW\Semester_5\SWEN3\Shreddit\backend\src\main\java\com\fhtw\shreddit\api\dto\NoteDto.java
 D:\FHTW\Semester_5\SWEN3\Shreddit\backend\src\main\java\com\fhtw\shreddit\api\dto\OcrFileRequestDto.java
@@ -8,6 +10,7 @@ D:\FHTW\Semester_5\SWEN3\Shreddit\backend\src\main\java\com\fhtw\shreddit\config
 D:\FHTW\Semester_5\SWEN3\Shreddit\backend\src\main\java\com\fhtw\shreddit\config\RabbitMQConfig.java
 D:\FHTW\Semester_5\SWEN3\Shreddit\backend\src\main\java\com\fhtw\shreddit\config\SecurityConfig.java
 D:\FHTW\Semester_5\SWEN3\Shreddit\backend\src\main\java\com\fhtw\shreddit\controller\AuthController.java
+D:\FHTW\Semester_5\SWEN3\Shreddit\backend\src\main\java\com\fhtw\shreddit\controller\DocumentCommentsController.java
 D:\FHTW\Semester_5\SWEN3\Shreddit\backend\src\main\java\com\fhtw\shreddit\controller\DocumentFilesController.java
 D:\FHTW\Semester_5\SWEN3\Shreddit\backend\src\main\java\com\fhtw\shreddit\controller\DocumentNotesController.java
 D:\FHTW\Semester_5\SWEN3\Shreddit\backend\src\main\java\com\fhtw\shreddit\controller\DocumentsController.java
@@ -20,10 +23,13 @@ D:\FHTW\Semester_5\SWEN3\Shreddit\backend\src\main\java\com\fhtw\shreddit\except
 D:\FHTW\Semester_5\SWEN3\Shreddit\backend\src\main\java\com\fhtw\shreddit\exception\GlobalExceptionHandler.java
 D:\FHTW\Semester_5\SWEN3\Shreddit\backend\src\main\java\com\fhtw\shreddit\exception\MessagePublishException.java
 D:\FHTW\Semester_5\SWEN3\Shreddit\backend\src\main\java\com\fhtw\shreddit\exception\ShredditException.java
+D:\FHTW\Semester_5\SWEN3\Shreddit\backend\src\main\java\com\fhtw\shreddit\model\CommentEntity.java
 D:\FHTW\Semester_5\SWEN3\Shreddit\backend\src\main\java\com\fhtw\shreddit\model\Document.java
+D:\FHTW\Semester_5\SWEN3\Shreddit\backend\src\main\java\com\fhtw\shreddit\model\DocumentAccessDaily.java
 D:\FHTW\Semester_5\SWEN3\Shreddit\backend\src\main\java\com\fhtw\shreddit\model\DocumentEntity.java
 D:\FHTW\Semester_5\SWEN3\Shreddit\backend\src\main\java\com\fhtw\shreddit\model\NoteEntity.java
 D:\FHTW\Semester_5\SWEN3\Shreddit\backend\src\main\java\com\fhtw\shreddit\model\UserEntity.java
+D:\FHTW\Semester_5\SWEN3\Shreddit\backend\src\main\java\com\fhtw\shreddit\repository\CommentRepository.java
 D:\FHTW\Semester_5\SWEN3\Shreddit\backend\src\main\java\com\fhtw\shreddit\repository\DocumentRepository.java
 D:\FHTW\Semester_5\SWEN3\Shreddit\backend\src\main\java\com\fhtw\shreddit\repository\NoteRepository.java
 D:\FHTW\Semester_5\SWEN3\Shreddit\backend\src\main\java\com\fhtw\shreddit\repository\UserRepository.java
@@ -33,6 +39,7 @@ D:\FHTW\Semester_5\SWEN3\Shreddit\backend\src\main\java\com\fhtw\shreddit\search
 D:\FHTW\Semester_5\SWEN3\Shreddit\backend\src\main\java\com\fhtw\shreddit\search\SearchHit.java
 D:\FHTW\Semester_5\SWEN3\Shreddit\backend\src\main\java\com\fhtw\shreddit\security\JwtAuthFilter.java
 D:\FHTW\Semester_5\SWEN3\Shreddit\backend\src\main\java\com\fhtw\shreddit\security\JwtService.java
+D:\FHTW\Semester_5\SWEN3\Shreddit\backend\src\main\java\com\fhtw\shreddit\service\CommentService.java
 D:\FHTW\Semester_5\SWEN3\Shreddit\backend\src\main\java\com\fhtw\shreddit\service\DocumentService.java
 D:\FHTW\Semester_5\SWEN3\Shreddit\backend\src\main\java\com\fhtw\shreddit\service\NoteService.java
 D:\FHTW\Semester_5\SWEN3\Shreddit\backend\src\main\java\com\fhtw\shreddit\service\RabbitMQService.java
