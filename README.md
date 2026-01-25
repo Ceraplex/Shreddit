@@ -79,6 +79,8 @@ XML document import (document replacement)
 - Input folder and filename pattern are configurable via `XMLIMPORT_INPUT_DIR` and `XMLIMPORT_FILE_PATTERN`.
 - Processed XML files are moved to the archive folder (`XMLIMPORT_ARCHIVE_DIR`) to avoid duplicates.
 
+- To test: docker compose run --rm -e XMLIMPORT_CRON="0/5 \* \* \* \* \*" xml-import-worker
+
 XML format (single document per file)
 
 ```xml
