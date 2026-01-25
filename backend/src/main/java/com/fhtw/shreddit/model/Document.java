@@ -7,6 +7,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.MappedSuperclass;
 import jakarta.persistence.PrePersist;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 
@@ -43,6 +44,14 @@ public class Document {
     // Raw OCR text stored for reference/debugging
     @Column(name = "ocr_text", columnDefinition = "TEXT")
     private String ocrText;
+
+    // Optional document date from manual import
+    @Column(name = "document_date")
+    private LocalDate documentDate;
+
+    // Optional tags (comma-separated)
+    @Column(name = "tags", columnDefinition = "TEXT")
+    private String tags;
 
     public Document() {}
 
@@ -123,5 +132,21 @@ public class Document {
 
     public void setOcrText(String ocrText) {
         this.ocrText = ocrText;
+    }
+
+    public LocalDate getDocumentDate() {
+        return documentDate;
+    }
+
+    public void setDocumentDate(LocalDate documentDate) {
+        this.documentDate = documentDate;
+    }
+
+    public String getTags() {
+        return tags;
+    }
+
+    public void setTags(String tags) {
+        this.tags = tags;
     }
 }

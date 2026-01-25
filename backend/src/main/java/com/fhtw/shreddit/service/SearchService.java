@@ -91,7 +91,8 @@ public class SearchService {
         return contains(doc.getTitle(), needle)
                 || contains(doc.getContent(), needle)
                 || contains(doc.getSummary(), needle)
-                || contains(doc.getOcrText(), needle);
+                || contains(doc.getOcrText(), needle)
+                || contains(doc.getTags(), needle);
     }
 
     private boolean contains(String haystack, String needle) {

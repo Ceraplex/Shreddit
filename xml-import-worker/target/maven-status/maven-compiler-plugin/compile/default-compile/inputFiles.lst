@@ -1,0 +1,8 @@
+D:\FHTW\Semester_5\SWEN3\Shreddit\xml-import-worker\src\main\java\com\fhtw\xmlimportworker\config\XmlImportProperties.java
+D:\FHTW\Semester_5\SWEN3\Shreddit\xml-import-worker\src\main\java\com\fhtw\xmlimportworker\model\DocumentEntity.java
+D:\FHTW\Semester_5\SWEN3\Shreddit\xml-import-worker\src\main\java\com\fhtw\xmlimportworker\model\ImportedDocument.java
+D:\FHTW\Semester_5\SWEN3\Shreddit\xml-import-worker\src\main\java\com\fhtw\xmlimportworker\repo\DocumentRepository.java
+D:\FHTW\Semester_5\SWEN3\Shreddit\xml-import-worker\src\main\java\com\fhtw\xmlimportworker\service\XmlDocumentImporter.java
+D:\FHTW\Semester_5\SWEN3\Shreddit\xml-import-worker\src\main\java\com\fhtw\xmlimportworker\service\XmlDocumentParser.java
+D:\FHTW\Semester_5\SWEN3\Shreddit\xml-import-worker\src\main\java\com\fhtw\xmlimportworker\service\XmlImportScheduler.java
+D:\FHTW\Semester_5\SWEN3\Shreddit\xml-import-worker\src\main\java\com\fhtw\xmlimportworker\XmlImportWorkerApplication.java

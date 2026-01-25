@@ -5,6 +5,7 @@ import com.fhtw.shreddit.model.UserEntity;
 import com.fhtw.shreddit.repository.UserRepository;
 import com.fhtw.shreddit.security.JwtService;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -62,6 +63,11 @@ class AuthControllerTest {
 
         // Setup SecurityContextHolder mock
         SecurityContextHolder.setContext(securityContext);
+    }
+
+    @AfterEach
+    void tearDown() {
+        SecurityContextHolder.clearContext();
     }
 
     @Test

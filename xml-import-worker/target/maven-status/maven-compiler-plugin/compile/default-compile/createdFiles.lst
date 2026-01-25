@@ -1,0 +1,8 @@
+com\fhtw\xmlimportworker\model\DocumentEntity.class
+com\fhtw\xmlimportworker\XmlImportWorkerApplication.class
+com\fhtw\xmlimportworker\service\XmlDocumentParser.class
+com\fhtw\xmlimportworker\service\XmlImportScheduler.class
+com\fhtw\xmlimportworker\repo\DocumentRepository.class
+com\fhtw\xmlimportworker\config\XmlImportProperties.class
+com\fhtw\xmlimportworker\model\ImportedDocument.class
+com\fhtw\xmlimportworker\service\XmlDocumentImporter.class

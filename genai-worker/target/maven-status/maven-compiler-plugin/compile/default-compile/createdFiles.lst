@@ -1,0 +1,8 @@
+com\fhtw\genaiworker\listener\GenAiListener.class
+com\fhtw\genaiworker\config\RabbitConfig.class
+com\fhtw\genaiworker\repo\DocumentRepository.class
+com\fhtw\genaiworker\service\GeminiClient.class
+com\fhtw\genaiworker\model\DocumentEntity.class
+com\fhtw\genaiworker\dto\GenAiRequestDto.class
+com\fhtw\genaiworker\config\MinioConfig.class
+com\fhtw\genaiworker\GenAiWorkerApplication.class

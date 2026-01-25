@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 
@@ -21,6 +22,8 @@ public class DocumentDto {
     private String summary;
     private String summaryStatus;
     private String ocrText;
+    private LocalDate documentDate;
+    private String tags;
 
     public DocumentDto() {}
     @JsonCreator
@@ -108,5 +111,21 @@ public class DocumentDto {
 
     public void setOcrText(String ocrText) {
         this.ocrText = ocrText;
+    }
+
+    public LocalDate getDocumentDate() {
+        return documentDate;
+    }
+
+    public void setDocumentDate(LocalDate documentDate) {
+        this.documentDate = documentDate;
+    }
+
+    public String getTags() {
+        return tags;
+    }
+
+    public void setTags(String tags) {
+        this.tags = tags;
     }
 }

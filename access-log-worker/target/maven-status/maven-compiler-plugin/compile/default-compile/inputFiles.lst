@@ -1,0 +1,11 @@
+D:\FHTW\Semester_5\SWEN3\Shreddit\access-log-worker\src\main\java\com\fhtw\accesslogworker\AccessLogWorkerApplication.java
+D:\FHTW\Semester_5\SWEN3\Shreddit\access-log-worker\src\main\java\com\fhtw\accesslogworker\config\AccessLogProperties.java
+D:\FHTW\Semester_5\SWEN3\Shreddit\access-log-worker\src\main\java\com\fhtw\accesslogworker\model\AccessLogBatch.java
+D:\FHTW\Semester_5\SWEN3\Shreddit\access-log-worker\src\main\java\com\fhtw\accesslogworker\model\AccessLogEntry.java
+D:\FHTW\Semester_5\SWEN3\Shreddit\access-log-worker\src\main\java\com\fhtw\accesslogworker\model\DocumentAccessDaily.java
+D:\FHTW\Semester_5\SWEN3\Shreddit\access-log-worker\src\main\java\com\fhtw\accesslogworker\model\DocumentEntity.java
+D:\FHTW\Semester_5\SWEN3\Shreddit\access-log-worker\src\main\java\com\fhtw\accesslogworker\repo\DocumentAccessDailyRepository.java
+D:\FHTW\Semester_5\SWEN3\Shreddit\access-log-worker\src\main\java\com\fhtw\accesslogworker\repo\DocumentRepository.java
+D:\FHTW\Semester_5\SWEN3\Shreddit\access-log-worker\src\main\java\com\fhtw\accesslogworker\service\AccessLogProcessor.java
+D:\FHTW\Semester_5\SWEN3\Shreddit\access-log-worker\src\main\java\com\fhtw\accesslogworker\service\AccessLogScheduler.java
+D:\FHTW\Semester_5\SWEN3\Shreddit\access-log-worker\src\main\java\com\fhtw\accesslogworker\service\AccessLogXmlParser.java

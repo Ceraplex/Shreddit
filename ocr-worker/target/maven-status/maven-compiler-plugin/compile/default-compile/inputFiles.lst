@@ -1,0 +1,7 @@
+D:\FHTW\Semester_5\SWEN3\Shreddit\ocr-worker\src\main\java\com\fhtw\ocrworker\config\MinioConfig.java
+D:\FHTW\Semester_5\SWEN3\Shreddit\ocr-worker\src\main\java\com\fhtw\ocrworker\config\RabbitConfig.java
+D:\FHTW\Semester_5\SWEN3\Shreddit\ocr-worker\src\main\java\com\fhtw\ocrworker\controller\HealthController.java
+D:\FHTW\Semester_5\SWEN3\Shreddit\ocr-worker\src\main\java\com\fhtw\ocrworker\dto\OcrFileRequestDto.java
+D:\FHTW\Semester_5\SWEN3\Shreddit\ocr-worker\src\main\java\com\fhtw\ocrworker\listener\OcrListener.java
+D:\FHTW\Semester_5\SWEN3\Shreddit\ocr-worker\src\main\java\com\fhtw\ocrworker\OcrWorkerApplication.java
+D:\FHTW\Semester_5\SWEN3\Shreddit\ocr-worker\src\main\java\com\fhtw\ocrworker\service\OcrProcessorService.java

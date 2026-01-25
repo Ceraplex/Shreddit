@@ -445,11 +445,37 @@
                 <div><strong>Uploaded:</strong> ${formatDate(doc.createdAt)}</div>
                 <div><strong>ID:</strong> ${doc.id}</div>
                 ${summaryBlock}
+
+                <!-- Comments section -->
+                <div style="margin-top: 1rem; border-top: 1px solid #0002; padding-top: 1rem;">
+                  <h3>Comments</h3>
+                  <div id="comments-${doc.id}" class="comments-list">
+                    <div class="muted">Loading comments...</div>
+                  </div>
+
+                  <!-- Comment form -->
+                  <div style="margin-top: 1rem;">
+                    <h4>Add a comment</h4>
+                    <div class="row" style="flex-direction: column; align-items: flex-start;">
+                      <textarea id="comment-text-${doc.id}" style="width: 100%; min-height: 80px; margin-bottom: 0.5rem;" placeholder="Write your comment here..."></textarea>
+                      <button id="add-comment-btn-${doc.id}" data-document-id="${doc.id}">Add Comment</button>
+                    </div>
+                  </div>
+                </div>
               `;
                             details.dataset.loaded = 'true';
                             const dlBtn = details.querySelector(`#${summaryBtnId}`);
                             if (dlBtn) {
                                 dlBtn.addEventListener('click', () => handleDownloadSummary(doc.id, doc.summary));
+                            }
+
+                            // Load comments for this document
+                            loadComments(doc.id);
+
+                            // Add event listener for the comment button
+                            const addCommentBtn = details.querySelector(`#add-comment-btn-${doc.id}`);
+                            if (addCommentBtn) {
+                                addCommentBtn.addEventListener('click', () => addComment(doc.id));
                             }
                         }
                     } catch (e) {
@@ -604,6 +630,105 @@
         if (autoRefreshTimer) {
             clearInterval(autoRefreshTimer);
             autoRefreshTimer = null;
+        }
+    }
+
+    // Comments functionality
+    async function loadComments(documentId) {
+        if (!isLoggedIn()) return;
+
+        const commentsContainer = document.getElementById(`comments-${documentId}`);
+        if (!commentsContainer) return;
+
+        try {
+            const res = await apiFetch(`/api/documents/${documentId}/comments`);
+            if (!res.ok) {
+                commentsContainer.innerHTML = '<div class="muted">Failed to load comments.</div>';
+                return;
+            }
+
+            const comments = await res.json();
+            if (!comments || comments.length === 0) {
+                commentsContainer.innerHTML = '<div class="muted">No comments yet.</div>';
+                return;
+            }
+
+            let html = '';
+            for (const comment of comments) {
+                html += `
+                <div class="comment" style="margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid #0001;">
+                    <div class="comment-text" style="margin-bottom: 0.25rem;">${escapeHtml(comment.text)}</div>
+                    <div class="comment-meta row space-between">
+                        <span class="muted date">${formatDate(comment.createdAt)}</span>
+                        <button class="delete-comment-btn" data-comment-id="${comment.id}">Delete</button>
+                    </div>
+                </div>`;
+            }
+
+            commentsContainer.innerHTML = html;
+
+            // Add event listeners for delete buttons
+            const deleteButtons = commentsContainer.querySelectorAll('.delete-comment-btn');
+            deleteButtons.forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    const commentId = btn.dataset.commentId;
+                    if (!commentId) return;
+
+                    if (!confirm('Delete this comment?')) return;
+
+                    try {
+                        const res = await apiFetch(`/api/comments/${commentId}`, { method: 'DELETE' });
+                        if (res.ok) {
+                            // Reload comments after deletion
+                            loadComments(documentId);
+                        } else {
+                            alert('Failed to delete comment.');
+                        }
+                    } catch (e) {
+                        console.error('Error deleting comment:', e);
+                        alert('Error deleting comment.');
+                    }
+                });
+            });
+
+        } catch (e) {
+            console.error('Error loading comments:', e);
+            commentsContainer.innerHTML = '<div class="muted">Error loading comments.</div>';
+        }
+    }
+
+    async function addComment(documentId) {
+        if (!isLoggedIn()) return;
+
+        const textArea = document.getElementById(`comment-text-${documentId}`);
+        if (!textArea) return;
+
+        const text = textArea.value.trim();
+        if (!text) {
+            alert('Please enter a comment.');
+            return;
+        }
+
+        try {
+            const res = await apiFetch(`/api/documents/${documentId}/comments`, {
+                method: 'POST',
+                body: JSON.stringify({ text })
+            });
+
+            if (!res.ok) {
+                alert('Failed to add comment.');
+                return;
+            }
+
+            // Clear the textarea
+            textArea.value = '';
+
+            // Reload comments to show the new one
+            loadComments(documentId);
+
+        } catch (e) {
+            console.error('Error adding comment:', e);
+            alert('Error adding comment.');
         }
     }
 
