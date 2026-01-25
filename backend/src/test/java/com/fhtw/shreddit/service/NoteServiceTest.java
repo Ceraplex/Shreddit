@@ -21,7 +21,6 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
 
@@ -38,6 +37,7 @@ class NoteServiceTest {
     @BeforeEach
     void setup() {
         noteService = new NoteService(noteRepository, documentRepository);
+        SecurityContextHolder.clearContext();
         SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken("alice", "pw"));
     }
 
@@ -80,11 +80,6 @@ class NoteServiceTest {
 
     @Test
     void addNoteRejectsEmptyContent() {
-        DocumentEntity doc = new DocumentEntity();
-        doc.setId(3L);
-        doc.setUsername("alice");
-        when(documentRepository.findById(anyLong())).thenReturn(Optional.of(doc));
-
         assertThrows(DocumentException.class, () -> noteService.addNote(3L, " "));
     }
 }

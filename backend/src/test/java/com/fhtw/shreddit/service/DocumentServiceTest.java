@@ -11,6 +11,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -41,6 +43,7 @@ class DocumentServiceTest {
 
     @BeforeEach
     void setUp() {
+        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken("testuser", "pw"));
         now = LocalDateTime.now();
 
         // Create test entities
@@ -61,6 +64,11 @@ class DocumentServiceTest {
         // Create test DTOs
         testDto1 = new DocumentDto(1L, "Test Document 1", "Content 1", now, "testuser");
         testDto2 = new DocumentDto(2L, "Test Document 2", "Content 2", now, "testuser");
+    }
+
+    @org.junit.jupiter.api.AfterEach
+    void tearDown() {
+        SecurityContextHolder.clearContext();
     }
 
     @Test
