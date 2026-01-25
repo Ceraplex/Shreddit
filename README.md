@@ -27,13 +27,15 @@ Developers
 - To rebuild after code changes in the backend Docker image:
   - docker compose -f backend/docker-compose.yml up -d --build
 
-That’s it. Start the stack, open http://localhost/, and you’re ready to go.
+open http://localhost/ and if you want, check minIO: http://localhost:9001/
+and RabbitMQ: http://localhost:15672/
+
 
 
 ---
 
 Backend tests and coverage
-- We added JaCoCo to the backend (Maven) build with a 75% minimum instruction coverage check to demonstrate enforcement.
+- added JaCoCo to the backend (Maven) build with a 75% minimum instruction coverage check to demonstrate enforcement.
 - To run tests and generate the coverage report locally:
   - Prerequisite: Have Apache Maven installed (or add the Maven Wrapper files). The provided wrapper scripts are present but the .mvn/wrapper directory is not committed.
   - From the repository root, run:
@@ -45,11 +47,10 @@ Notes on initial coverage rule
 - The initial check is scoped to these classes to keep the build green while demonstrating the 75% requirement:
   - com.fhtw.shreddit.exception.*
   - com.fhtw.shreddit.security.JwtService
-- You can broaden enforcement later by removing the <includes> filter in the JaCoCo check configuration inside backend/pom.xml (or by adding more packages).
 
 Testing libraries used
 - JUnit Jupiter (via spring-boot-starter-test)
-- H2 is available for repository tests if desired in the future.
+- H2 is available for repository tests
 
 XML document import (document replacement)
 - The `xml-import-worker` reads XML files from a configurable folder and writes them directly to Postgres.
@@ -76,3 +77,89 @@ XML format (single document per file)
 
 Sample file
 - `xml-import/inbox/document-2026-01-19.xml`
+
+## Document Comments
+
+The application supports adding comments to documents. Comments are stored in a separate table and are associated with a document via a foreign key.
+
+### Database Schema
+
+The comment table is automatically created by Hibernate when the application starts, based on the CommentEntity class. If you need to create the table manually, you can use the SQL script in `db/comment.sql`:
+
+```sql
+CREATE TABLE IF NOT EXISTS public.comment (
+    id BIGSERIAL PRIMARY KEY,
+    document_id BIGINT NOT NULL REFERENCES public.document_entity(id) ON DELETE CASCADE,
+    text TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_comment_document_id ON public.comment(document_id);
+```
+
+### API Endpoints
+
+#### Get Comments for a Document
+```
+GET /documents/{documentId}/comments
+```
+Returns a list of comments for the specified document, sorted by creation date (newest first).
+
+Example:
+```bash
+curl -X GET http://localhost:8080/documents/1/comments
+```
+
+Response:
+```json
+[
+  {
+    "id": 2,
+    "documentId": 1,
+    "text": "This is a newer comment",
+    "createdAt": "2026-01-25T15:30:45.123"
+  },
+  {
+    "id": 1,
+    "documentId": 1,
+    "text": "This is an older comment",
+    "createdAt": "2026-01-25T14:20:30.456"
+  }
+]
+```
+
+#### Add a Comment to a Document
+```
+POST /documents/{documentId}/comments
+```
+Adds a new comment to the specified document.
+
+Example:
+```bash
+curl -X POST http://localhost:8080/documents/1/comments \
+  -H "Content-Type: application/json" \
+  -d '{"text": "This is a new comment"}'
+```
+
+Response:
+```json
+{
+  "id": 3,
+  "documentId": 1,
+  "text": "This is a new comment",
+  "createdAt": "2026-01-25T16:45:12.789"
+}
+```
+
+#### Delete a Comment
+```
+DELETE /comments/{commentId}
+```
+Deletes the specified comment.
+
+Example:
+```bash
+curl -X DELETE http://localhost:8080/comments/3
+```
+
+Response: 204 No Content

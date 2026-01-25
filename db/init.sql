@@ -73,3 +73,12 @@ CREATE TABLE IF NOT EXISTS public.user_entity (
     password_hash TEXT NOT NULL,
     created_at TIMESTAMP NULL
 );
+
+-- Comments on documents
+CREATE TABLE IF NOT EXISTS public.comment (
+    id BIGSERIAL PRIMARY KEY,
+    document_id BIGINT NOT NULL REFERENCES public.document_entity(id) ON DELETE CASCADE,
+    text TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS idx_comment_document_id ON public.comment(document_id);

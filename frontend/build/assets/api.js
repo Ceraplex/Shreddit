@@ -15,3 +15,4 @@ window.apiFetch = async function apiFetch(url, options = {}) {
 
   return fetch(url, opts);
 };
+
