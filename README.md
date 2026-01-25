@@ -50,3 +50,29 @@ Notes on initial coverage rule
 Testing libraries used
 - JUnit Jupiter (via spring-boot-starter-test)
 - H2 is available for repository tests if desired in the future.
+
+XML document import (document replacement)
+- The `xml-import-worker` reads XML files from a configurable folder and writes them directly to Postgres.
+- Runs daily at 01:00 via `XMLIMPORT_CRON` (default `0 0 1 * * *`).
+- Input folder and filename pattern are configurable via `XMLIMPORT_INPUT_DIR` and `XMLIMPORT_FILE_PATTERN`.
+- Processed XML files are moved to the archive folder (`XMLIMPORT_ARCHIVE_DIR`) to avoid duplicates.
+
+XML format (single document per file)
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<document>
+    <filename>contract-2026-01-19.pdf</filename>
+    <title>Contract Review</title>
+    <datum>2026-01-19</datum>
+    <tags>
+        <tag>vertrag</tag>
+        <tag>legal</tag>
+    </tags>
+    <username>xml-import</username>
+    <summary>Manuell importiertes Dokument aus einer XML-Datei.</summary>
+    <content>Dies ist ein Beispieltext, der als Dokumentinhalt gespeichert wird.</content>
+</document>
+```
+
+Sample file
+- `xml-import/inbox/document-2026-01-19.xml`

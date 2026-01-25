@@ -118,6 +118,24 @@ services:
       ELASTICSEARCH_URL: http://elasticsearch:9200
     restart: unless-stopped
 
+  xml-import-worker:
+    build: ./xml-import-worker
+    container_name: shreddit_xml_import_worker
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/shreddit
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      XMLIMPORT_INPUT_DIR: /data/xml-import/inbox
+      XMLIMPORT_ARCHIVE_DIR: /data/xml-import/archive
+      XMLIMPORT_FILE_PATTERN: "*.xml"
+      XMLIMPORT_CRON: "0 0 1 * * *"
+    volumes:
+      - ./xml-import:/data/xml-import
+    restart: unless-stopped
+
   db:
     image: postgres:16
     container_name: shreddit_db

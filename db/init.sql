@@ -7,7 +7,9 @@ CREATE TABLE IF NOT EXISTS public.document_entity (
     filename TEXT,
     summary TEXT,
     summary_status TEXT,
-    ocr_text TEXT
+    ocr_text TEXT,
+    document_date DATE,
+    tags TEXT
 );
 
 -- Ensure summary column is TEXT in case previous versions created it as VARCHAR(255)
@@ -31,6 +33,26 @@ BEGIN
           AND column_name = 'ocr_text'
     ) THEN
         EXECUTE 'ALTER TABLE public.document_entity ADD COLUMN ocr_text TEXT';
+    END IF;
+
+    -- Add document_date column if missing
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_schema = 'public'
+          AND table_name = 'document_entity'
+          AND column_name = 'document_date'
+    ) THEN
+        EXECUTE 'ALTER TABLE public.document_entity ADD COLUMN document_date DATE';
+    END IF;
+
+    -- Add tags column if missing
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_schema = 'public'
+          AND table_name = 'document_entity'
+          AND column_name = 'tags'
+    ) THEN
+        EXECUTE 'ALTER TABLE public.document_entity ADD COLUMN tags TEXT';
     END IF;
 END $$;
 

@@ -1,45 +1,51 @@
-package com.fhtw.shreddit.api.dto;
+package com.fhtw.xmlimportworker.model;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-
-@JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonIgnoreProperties(ignoreUnknown = true)
-public class DocumentDto {
+@Entity
+@Table(name = "document_entity", schema = "public")
+public class DocumentEntity {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String title;
-    private String content;
-    private LocalDateTime createdAt;
-    private String username;
-    // Name of the stored object in MinIO (may differ from title)
-    private String filename;
-    private String summary;
-    private String summaryStatus;
-    private String ocrText;
-    private LocalDate documentDate;
-    private String tags;
 
-    public DocumentDto() {}
-    @JsonCreator
-    public DocumentDto(
-            @JsonProperty("id") Long id,
-            @JsonProperty("title") String title,
-            @JsonProperty("content") String content,
-            @JsonProperty("createdAt") LocalDateTime createdAt,
-            @JsonProperty("username") String username
-    ) {
-        this.id = id;
-        this.title = title;
-        this.content = content;
-        this.createdAt = createdAt;
-        this.username = username;
-    }
+    @Column(name = "title")
+    private String title;
+
+    @Column(name = "content")
+    private String content;
+
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
+
+    @Column(name = "username")
+    private String username;
+
+    @Column(name = "filename")
+    private String filename;
+
+    @Column(name = "summary", columnDefinition = "TEXT")
+    private String summary;
+
+    @Column(name = "summary_status")
+    private String summaryStatus;
+
+    @Column(name = "ocr_text", columnDefinition = "TEXT")
+    private String ocrText;
+
+    @Column(name = "document_date")
+    private LocalDate documentDate;
+
+    @Column(name = "tags", columnDefinition = "TEXT")
+    private String tags;
 
     public Long getId() {
         return id;

@@ -109,6 +109,8 @@ public class DocumentService {
         entity.setSummary(doc.getSummary());
         entity.setSummaryStatus(doc.getSummaryStatus());
         entity.setOcrText(doc.getOcrText());
+        entity.setDocumentDate(doc.getDocumentDate());
+        entity.setTags(doc.getTags());
         return entity;
     }
 
@@ -123,6 +125,8 @@ public class DocumentService {
         doc.setSummary(entity.getSummary());
         doc.setSummaryStatus(entity.getSummaryStatus());
         doc.setOcrText(entity.getOcrText());
+        doc.setDocumentDate(entity.getDocumentDate());
+        doc.setTags(entity.getTags());
         return doc;
     }
 }

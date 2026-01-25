@@ -35,3 +35,7 @@ build/
 .vscode/
 
 node_modules/
+access-logs/archive/*
+!access-logs/archive/.gitkeep
+xml-import/archive/*
+!xml-import/archive/.gitkeep
